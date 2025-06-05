@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model bukti_perpanjangan {
+  bukti_perpanjangan Bytes?
+  jft_no             String? @db.VarChar(50)
+  cir_no             String? @db.VarChar(50)
+
+  @@ignore
+}
+
+model cardek {
+  id           Int       @id @default(autoincrement())
+  jft_no       String    @db.VarChar(30)
+  cal_date     DateTime?
+  rept_no      String?   @db.VarChar(50)
+  sert_no      String?   @db.VarChar(50)
+  cal_location String?   @db.VarChar(255)
+  cal_name     String?   @db.VarChar(30)
+  lampiran     String?   @db.VarChar(255)
+  create_at    DateTime  @db.DateTime(0)
+  create_by    String    @db.VarChar(255)
+}
+
+model cardek_file {
+  id_cardek_file Int    @id @default(autoincrement())
+  jft_no         String @db.VarChar(30)
+  file           String @db.VarChar(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model cetak_barcode {
+  jft_no   String    @db.VarChar(30)
+  cal_date DateTime? @db.Date
+  due_date DateTime? @db.Date
+  name     String?   @db.VarChar(255)
+  barcode  Bytes?    @db.Blob
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model detail_defect {
+  title              String? @db.VarChar(255)
+  title2             String? @default("-") @db.VarChar(255)
+  refer_to           String? @db.VarChar(255)
+  title_total_case   String? @db.VarChar(255)
+  detail_total_case  String? @db.Text
+  title_total_pcs    String? @db.VarChar(255)
+  detail_total_pcs   String? @db.Text
+  title_total_fault  String? @db.VarChar(255)
+  detail_total_fault String? @db.Text
+  periode            String? @db.VarChar(100)
+  tgl                String? @db.VarChar(50)
+  no                 Int?
+
+  @@ignore
+}
+
+model kalibrasi_eksternal {
+  usage_no    String                      @id @db.VarChar(8)
+  sender      String?                     @db.VarChar(255)
+  location    String?                     @db.VarChar(255)
+  remarks     String?                     @db.VarChar(255)
+  tanggal     DateTime?                   @db.Date
+  tgl_kembali String?                     @db.VarChar(30)
+  status      kalibrasi_eksternal_status? @default(Belum_Kembali)
+  barcode     Bytes?                      @db.Blob
+  bulan       String?                     @db.VarChar(30)
+  tahun       String?                     @db.VarChar(4)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model kalibrasi_eksternal_detail {
+  usage_no     String    @db.VarChar(8)
+  jft_no       String?   @db.VarChar(30)
+  frequency    String?   @db.VarChar(10)
+  last_cal     DateTime? @db.Date
+  usage_degree Int?
+  kembali      String?   @default("Ya") @db.VarChar(10)
+  tanggal      String?   @db.VarChar(30)
+
+  @@ignore
+}
+
+model master_barang {
+  no_jft             String?   @db.VarChar(50)
+  size               String?   @db.VarChar(100)
+  description        String?   @db.VarChar(150)
+  serial_number      String?   @db.VarChar(100)
+  store_by           String?   @db.VarChar(20)
+  frequency          String?   @db.VarChar(20)
+  calibration_source String?   @db.VarChar(20)
+  calibration_date   DateTime? @db.Date
+  next_calibration   DateTime? @db.Date
+  ref_criteria       String?   @default("-") @db.VarChar(100)
+  status             String?   @db.VarChar(15)
+  bulan              Int?
+  tahun              Int?      @db.SmallInt
+  degree_usage       String?   @db.VarChar(10)
+  keterangan         String?   @db.Text
+  lampiran           String    @db.LongText
+  id                 Int       @id @default(autoincrement())
+  create_at          DateTime  @db.DateTime(0)
+  create_by          String    @db.VarChar(255)
+  modify_at          DateTime? @db.DateTime(0)
+  modify_by          String?   @db.VarChar(255)
+  deleted            Int       @default(0)
+}
+
+model master_non_kalibrasi {
+  no_jft        String?   @db.VarChar(30)
+  size          String?   @db.VarChar(255)
+  description   String?   @db.VarChar(255)
+  serial_number String?   @db.VarChar(255)
+  store_by      String?   @db.VarChar(255)
+  note          String?   @db.VarChar(255)
+  check         DateTime? @db.Date
+  next          DateTime? @db.Date
+  jenis         String?   @default("Indentitas") @db.VarChar(30)
+  id            Int       @id @default(autoincrement())
+  create_at     DateTime  @db.DateTime(0)
+  create_by     String    @db.VarChar(255)
+}
+
+model ncr_master {
+  ncr_no          String?            @unique(map: "ncr_no") @db.VarChar(30)
+  source          ncr_master_source?
+  item            String?            @db.Text
+  description     String?            @db.Text
+  po_no           String?            @db.VarChar(255)
+  wo_no           String?            @db.VarChar(255)
+  batch_qty       Int?
+  case            ncr_master_case?
+  pcs             Int?               @default(0)
+  kg              Int?               @default(0)
+  issued_date     DateTime?
+  completion_date DateTime?
+  verified_date   DateTime?
+  fault           String?            @default("") @db.VarChar(255)
+  lampiran        String             @default("") @db.VarChar(255)
+  id              Int                @id @default(autoincrement()) @db.UnsignedInt
+  departement     String?            @default("-") @db.VarChar(30)
+  cv              String?            @default("no") @db.VarChar(5)
+  remarks         String?            @default("-") @db.VarChar(255)
+  create_at       String?            @db.VarChar(255)
+  create_by       String             @db.VarChar(255)
+  modify_at       String?            @db.VarChar(255)
+  modify_by       String?            @default("-") @db.VarChar(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model officer_list {
+  no_payroll String? @db.VarChar(20)
+  nama       String? @db.VarChar(100)
+
+  @@ignore
+}
+
+model peminjaman_tool {
+  usage_no        String                  @id @db.VarChar(20)
+  no_payroll      String?                 @db.VarChar(30)
+  nama            String?                 @db.VarChar(255)
+  dept            String?                 @db.VarChar(255)
+  wo_refer_to     String?                 @db.VarChar(255)
+  batch_qty       Int?
+  tgl_diterima    DateTime?               @db.DateTime(0)
+  tgl_kembali     String?                 @db.VarChar(30)
+  status          peminjaman_tool_status? @default(Belum_Kembali)
+  barcode         Bytes?                  @db.Blob
+  bulan           String?                 @db.VarChar(30)
+  tahun           String?                 @db.VarChar(4)
+  location        String?                 @default("-") @db.VarChar(255)
+  issued_by       String?                 @default("-") @db.VarChar(255)
+  return_by       String?                 @default("-") @db.VarChar(255)
+  user_return     String?                 @default("-") @db.VarChar(255)
+  est_return_date DateTime?               @db.DateTime(0)
+  image           String?                 @db.VarChar(255)
+  image_return    String?                 @db.VarChar(255)
+  create_at       DateTime                @db.DateTime(0)
+  create_by       String                  @db.VarChar(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model peminjaman_tool_detail {
+  usage_no  String    @db.VarChar(20)
+  jft_no    String?   @db.VarChar(30)
+  kembali   String?   @default("Ya") @db.VarChar(10)
+  tanggal   DateTime? @default(now()) @db.Date
+  kondisi   String?   @default("-") @db.VarChar(30)
+  kondisi2  String?   @default("-") @db.VarChar(30)
+  id        Int       @id @default(autoincrement())
+  create_at DateTime  @db.DateTime(0)
+  create_by String    @db.VarChar(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model pengembalian_sementara {
+  no_pengembalian String?   @db.VarChar(255)
+  jft_no          String?   @db.VarChar(50)
+  tgl_kembali     DateTime? @db.DateTime(0)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model periode {
+  tipe        String? @db.VarChar(255)
+  lama_expire Int?    @db.SmallInt
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model rekap_case {
+  bulan              String? @db.VarChar(10)
+  return_to_supplier Int?
+  repair             Int?
+  rework             Int?
+  scrap              Int?
+  accept_as_is       Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model rekap_fault {
+  bulan    String? @db.VarChar(10)
+  oe       Int?
+  prog     Int?
+  mach     Int?
+  tool     Int?
+  material Int?
+  inspec   Int?
+  wo       Int?
+  draw     Int?
+  store    Int?
+  handle   Int?
+  subcon   Int?
+  supcus   Int?
+  pm       Int?
+  unknown  Int?
+
+  @@ignore
+}
+
+model usage_snapshot {
+  usage_no   String @id @default("") @db.VarChar(30)
+  entry_pic  Bytes? @db.MediumBlob
+  edit_pic   Bytes? @db.MediumBlob
+  return_pic Bytes? @db.MediumBlob
+}
+
+model user {
+  username   String?          @db.VarChar(30)
+  password   String?          @db.VarChar(100)
+  hak_akses  user_hak_akses?  @default(Kalibrasi)
+  user_level user_user_level? @default(User)
+  departemen String?          @default("Semua") @db.VarChar(30)
+  pc_name    String?          @default("-") @db.VarChar(30)
+  peminjaman Int?             @default(0)
+  image      String?          @db.VarChar(255)
+  id         Int              @id @default(autoincrement())
+  create_at  DateTime         @default(now()) @db.DateTime(0)
+  create_by  String           @db.VarChar(255)
+}
+
+model ncr_report {
+  ncr_no     String   @id @db.VarChar(20)
+  nrc_date   DateTime @db.Date
+  woc_no     String   @db.VarChar(20)
+  fault_code Int
+  operator   String   @db.VarChar(100)
+  root_cause String   @db.VarChar(100)
+  ncr_desc   String   @db.VarChar(255)
+  case       String   @db.VarChar(30)
+  pcs        Int
+}
+
+model session {
+  id_token     String   @db.VarChar(255)
+  sessionToken String   @db.LongText
+  id_user      String   @db.VarChar(255)
+  expires      DateTime @db.DateTime(0)
+  id           Int      @id @default(autoincrement())
+}
+
+enum ncr_master_source {
+  Supplier
+  Process
+  ExStock  @map("ExStock")
+  Customer
+}
+
+enum user_hak_akses {
+  Kalibrasi
+  NCR
+  Semua
+}
+
+enum user_user_level {
+  User
+  Admin
+  Guest
+}
+
+enum kalibrasi_eksternal_status {
+  Belum_Kembali @map("Belum Kembali")
+  Sudah_Kembali @map("Sudah Kembali")
+}
+
+enum peminjaman_tool_status {
+  Belum_Kembali @map("Belum Kembali")
+  Sudah_Kembali @map("Sudah Kembali")
+}
+
+enum ncr_master_case {
+  Return_To_Supplier @map("Return To Supplier")
+  Repair_Rework      @map("Repair/Rework")
+  Re_grade           @map("Re-grade")
+  Scrap
+  Accept_As_Is       @map("Accept As Is")
+  Repair
+  Rework
+}

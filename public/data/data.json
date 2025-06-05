@@ -1,0 +1,12 @@
+[
+  {
+    "payroll_id": "123456",
+    "name": "John Doe",
+    "departement": "IT"
+  },
+  {
+    "payroll_id": "7890123",
+    "name": "Jane Smith",
+    "departement": "HR"
+  }
+]
