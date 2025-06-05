@@ -1,4 +1,3 @@
-// lib/prisma.js
 import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis;
@@ -9,6 +8,4 @@ if (!globalForPrisma.prisma) {
   });
 }
 
-const prisma = globalForPrisma.prisma;
-
-module.exports = { prisma };
+export const prisma = globalForPrisma.prisma;
