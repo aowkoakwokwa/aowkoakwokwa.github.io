@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
 
     return NextResponse.json({ ip });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Failed to get IP' }, { status: 500 });
   }
 }

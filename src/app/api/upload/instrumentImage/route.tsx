@@ -73,8 +73,15 @@ export async function POST(req: NextRequest) {
       path: `/images/instrument/${type}/${newFileName}`,
       type,
     });
-  } catch (error: any) {
-    console.error('Upload error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message =
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof (error as any).message === 'string'
+        ? (error as any).message
+        : 'Unknown error';
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

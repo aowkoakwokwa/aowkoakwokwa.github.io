@@ -13,20 +13,17 @@ export async function DELETE(req: Request) {
     const absolutePath = path.join(process.cwd(), 'public', filePath);
 
     try {
-      // Periksa apakah file ada sebelum menghapusnya
       await fs.access(absolutePath);
 
-      // Jika file ada, hapus
       await fs.unlink(absolutePath);
       return NextResponse.json({ message: 'File deleted successfully' }, { status: 200 });
-    } catch (err) {
-      // Jika file tidak ditemukan, lewati penghapusan dan return sukses
+    } catch (_err) {
       return NextResponse.json(
         { message: 'File does not exist, skipping delete' },
         { status: 200 },
       );
     }
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 500 });
   }
 }

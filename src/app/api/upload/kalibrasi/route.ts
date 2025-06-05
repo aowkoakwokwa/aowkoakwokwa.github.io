@@ -44,8 +44,17 @@ export async function POST(req: NextRequest) {
       message: 'File uploaded successfully',
       fileName: newFileName,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error handling form data:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+    const message =
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      typeof (error as any).message === 'string'
+        ? (error as any).message
+        : 'Unknown error';
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

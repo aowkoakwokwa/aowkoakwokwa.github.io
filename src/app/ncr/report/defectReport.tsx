@@ -212,7 +212,6 @@ const getFaultCountsPerMonth = (filteredData: any[]) => {
 };
 
 export async function generateDefectReport(data: any) {
-  console.log(data);
   try {
     const filteredData = await getFilteredNCR(
       data.tahun,

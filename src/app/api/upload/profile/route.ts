@@ -4,6 +4,12 @@ import path from 'path';
 import Busboy from 'busboy';
 import { Readable } from 'stream';
 
+interface BusboyFileInfo {
+  filename: string;
+  encoding?: string;
+  mimeType?: string;
+}
+
 export const config = {
   api: {
     bodyParser: false,
@@ -23,7 +29,7 @@ export async function POST(req: NextRequest) {
   const fileWritePromises: Promise<void>[] = [];
 
   return new Promise<NextResponse>(async (resolve, reject) => {
-    bb.on('file', (_fieldname: string, file: Readable, fileInfo: any) => {
+    bb.on('file', (_fieldname: string, file: Readable, fileInfo: BusboyFileInfo) => {
       // console.log('📩 fileInfo:', fileInfo);
 
       if (!fileInfo || typeof fileInfo !== 'object' || !fileInfo.filename) {
