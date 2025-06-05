@@ -50,7 +50,7 @@ const deleteAccountData = async (id) => {
   }
 };
 
-export const deleteCardek = async (id) => {
+const deleteCardek = async (id) => {
   try {
     if (!id) {
       throw new Error('No ID provided for deletion');
@@ -68,7 +68,7 @@ export const deleteCardek = async (id) => {
   }
 };
 
-export const deleteNcr = async (id) => {
+const deleteNcr = async (id) => {
   try {
     if (!id) {
       throw new Error('No ID provided for deletion');
@@ -86,7 +86,7 @@ export const deleteNcr = async (id) => {
   }
 };
 
-export const deleteInstrumentData = async (id) => {
+const deleteInstrumentData = async (id) => {
   try {
     const deletedRecord = await prisma.peminjaman_tool.delete({
       where: { usage_no: id },
@@ -99,4 +99,11 @@ export const deleteInstrumentData = async (id) => {
   }
 };
 
-export { deleteMaster, deleteAccountData, deleteCardek, deleteNcr, deleteNonMaster };
+export {
+  deleteMaster,
+  deleteAccountData,
+  deleteCardek,
+  deleteNcr,
+  deleteNonMaster,
+  deleteInstrumentData,
+};

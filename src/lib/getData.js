@@ -138,7 +138,7 @@ const getFilteredNCR = async (tahun, bulan, source, departement) => {
 
 const getInstrumentData = async () => await prisma.peminjaman_tool.findMany();
 
-export const getInstrumentDataDetail = async (id) => {
+const getInstrumentDataDetail = async (id) => {
   const detailList = await prisma.peminjaman_tool_detail.findMany({
     where: { usage_no: id },
   });
@@ -179,7 +179,7 @@ export const getInstrumentDataDetail = async (id) => {
 
 const getNonMaster = async () => await prisma.master_non_kalibrasi.findMany();
 
-export async function getLastBorrowStatus(no_jft) {
+async function getLastBorrowStatus(no_jft) {
   const data = await prisma.peminjaman_tool_detail.findFirst({
     where: {
       jft_no: no_jft,

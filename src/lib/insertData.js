@@ -21,7 +21,7 @@ function formatDateToMySQL(date) {
   return `${adjustedDate.getFullYear()}-${pad(adjustedDate.getMonth() + 1)}-${pad(adjustedDate.getDate())} ${pad(adjustedDate.getHours())}:${pad(adjustedDate.getMinutes())}:${pad(adjustedDate.getSeconds())}`;
 }
 
-export async function insertDataMaster(data) {
+const insertDataMaster = async (data) => {
   if (!data || typeof data !== 'object') {
     throw new Error('Data must be a non-null object');
   }
@@ -54,9 +54,9 @@ export async function insertDataMaster(data) {
   } catch (error) {
     throw new Error(error.message);
   }
-}
+};
 
-export async function insertDataNonMaster(data) {
+const insertDataNonMaster = async (data) => {
   try {
     if (!data || typeof data !== 'object') {
       console.error('🚨 Data bukan object:', data);
@@ -83,9 +83,9 @@ export async function insertDataNonMaster(data) {
     console.error('Error:', error);
     throw new Error('Failed to insert data');
   }
-}
+};
 
-export async function insertNcrData(data) {
+const insertNcrData = async (data) => {
   try {
     if (!data || typeof data !== 'object') {
       throw new Error('Data yang dikirim tidak valid.');
@@ -128,9 +128,9 @@ export async function insertNcrData(data) {
   } catch (error) {
     throw error;
   }
-}
+};
 
-export async function insertAccountData(data) {
+const insertAccountData = async (data) => {
   try {
     const formData = {
       username: data.username || '',
@@ -152,9 +152,9 @@ export async function insertAccountData(data) {
   } catch (error) {
     throw error;
   }
-}
+};
 
-export async function insertDataInstrument(data) {
+const insertDataInstrument = async (data) => {
   try {
     const tgl_diterima = data.issued_date ? new Date(data.issued_date) : null;
     const est_return_date = data.est_return_date ? new Date(data.est_return_date) : null;
@@ -188,7 +188,7 @@ export async function insertDataInstrument(data) {
   } catch (error) {
     throw error;
   }
-}
+};
 
 const insertDetailPeminjaman = async (usage_no, scannedData) => {
   try {
