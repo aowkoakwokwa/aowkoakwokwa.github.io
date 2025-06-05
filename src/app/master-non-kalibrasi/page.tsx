@@ -115,8 +115,8 @@ export default function MasterKalibrasi() {
         if (!svgElement) return;
 
         const svgRect = svgElement.getBoundingClientRect();
-        let barcodeWidth = svgRect.width || 180;
-        let barcodeHeight = svgRect.height || 60;
+        const barcodeWidth = svgRect.width || 180;
+        const barcodeHeight = svgRect.height || 60;
 
         const aspectRatio = 9 / 16;
         let canvasWidth = barcodeWidth + 80;
@@ -240,8 +240,8 @@ export default function MasterKalibrasi() {
         if (!svgElement) return;
 
         const svgRect = svgElement.getBoundingClientRect();
-        let barcodeWidth = svgRect.width || 180;
-        let barcodeHeight = svgRect.height || 60;
+        const barcodeWidth = svgRect.width || 180;
+        const barcodeHeight = svgRect.height || 60;
 
         const aspectRatio = 9 / 16;
         let canvasWidth = barcodeWidth + 80;

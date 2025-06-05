@@ -197,6 +197,12 @@ export default function ReturnForm({
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (currentDateTime) {
+      form.setValue('tgl_kembali', currentDateTime);
+    }
+  }, [currentDateTime, form]);
+
   return (
     <>
       <Dialog open={open} onClose={close} maxWidth="xl" fullWidth>
@@ -280,12 +286,6 @@ export default function ReturnForm({
                   control={form.control}
                   name="tgl_kembali"
                   render={({ field: { value, onChange } }) => {
-                    useEffect(() => {
-                      if (currentDateTime) {
-                        onChange(currentDateTime); // ⬅️ Update nilai ke form
-                      }
-                    }, [currentDateTime]);
-
                     return (
                       <Input
                         required
