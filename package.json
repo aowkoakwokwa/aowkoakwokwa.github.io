@@ -77,7 +77,6 @@
     "react-pdf": "^9.2.1",
     "react-qr-barcode-scanner": "^2.0.0",
     "react-to-print": "^3.0.5",
-    "react-webcam-barcode-scanner": "^0.0.2",
     "rimraf": "^6.0.1",
     "sharp": "^0.34.1",
     "svg-to-pdfkit": "^0.1.8",
