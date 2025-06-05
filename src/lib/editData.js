@@ -21,7 +21,8 @@ function formatDateToMySQL(date) {
 }
 
 const prisma = new PrismaClient();
-export async function editDataMaster(data) {
+
+const editDataMaster = async (data) => {
   if (!data || typeof data !== 'object') {
     console.error('Data must be a non-null object');
     throw new Error('Data must be a non-null object');
@@ -58,9 +59,9 @@ export async function editDataMaster(data) {
   } finally {
     await prisma.$disconnect();
   }
-}
+};
 
-export async function perpanjangDataMaster(data) {
+const perpanjangDataMaster = async (data) => {
   if (!data || typeof data !== 'object') {
     console.error('Data must be a non-null object');
     throw new Error('Data must be a non-null object');
@@ -109,9 +110,9 @@ export async function perpanjangDataMaster(data) {
   } finally {
     await prisma.$disconnect();
   }
-}
+};
 
-export async function editAccountData(data) {
+const editAccountData = async (data) => {
   if (!data || typeof data !== 'object') {
     console.error('Data must be a non-null object');
     throw new Error('Data must be a non-null object');
@@ -139,9 +140,9 @@ export async function editAccountData(data) {
   } finally {
     await prisma.$disconnect();
   }
-}
+};
 
-export async function editNcrData(data) {
+const editNcrData = async (data) => {
   try {
     const formattedData = {
       ncr_no: data.ncr_no || '-',
@@ -183,10 +184,9 @@ export async function editNcrData(data) {
   } finally {
     await prisma.$disconnect();
   }
-}
+};
 
-export async function editReturnData(data) {
-  console.log(data);
+const editReturnData = async (data) => {
   try {
     function formatDateToSQLString(date) {
       const pad = (n) => n.toString().padStart(2, '0');
@@ -242,10 +242,9 @@ export async function editReturnData(data) {
   } catch (error) {
     throw new Error(error.message || 'Unknown error');
   }
-}
+};
 
 const editDeleteData = async (data) => {
-  console.log(data);
   try {
     const result = await prisma.master_barang.update({
       where: {
