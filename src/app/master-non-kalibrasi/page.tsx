@@ -5,7 +5,6 @@ import { AddOutlined, RefreshOutlined, DeleteOutlineOutlined } from '@mui/icons-
 import { Button, Input, Select, Option, Textarea, Checkbox, Table, Menu, MenuItem } from '@mui/joy';
 import { TableHead, TableBody, TableRow, TableCell, TablePagination, Alert } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Snackbar } from '@mui/material';
-import SkeletonLoader from '@/lib/skeletonLoaderTable';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getNonMaster } from '@/lib/getData';
 import { motion } from 'framer-motion';
@@ -64,7 +63,7 @@ export default function MasterKalibrasi() {
       return matchesSearchTerm && matchesSourceFilter;
     }) || [];
 
-  const LoadData = () => <SkeletonLoader />;
+  const LoadData = () => 'Loading..';
 
   if (masterData.isLoading) return <LoadData />;
 

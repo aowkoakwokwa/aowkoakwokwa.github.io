@@ -13,7 +13,6 @@ import {
 import { Button, Input, Select, Option, Textarea, Checkbox, Table, Menu, MenuItem } from '@mui/joy';
 import { TableHead, TableBody, TableRow, TableCell, TablePagination, Alert } from '@mui/material';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Snackbar } from '@mui/material';
-import SkeletonLoader from '@/lib/skeletonLoaderTable';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getMaster } from '@/lib/getData';
 import { motion } from 'framer-motion';
@@ -137,7 +136,7 @@ export default function MasterKalibrasi() {
     }
   }, [masterData.data, filterStatus]);
 
-  const LoadData = () => <SkeletonLoader />;
+  const LoadData = () => 'Loading..';
 
   if (masterData.isLoading) return <LoadData />;
 
