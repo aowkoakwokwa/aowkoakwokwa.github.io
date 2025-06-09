@@ -72,12 +72,6 @@ export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
+// ✅ Perbaikan bagian bawah
 const handler = NextAuth(authOptions);
-
-export async function GET(request: Request) {
-  return handler(request);
-}
-
-export async function POST(request: Request) {
-  return handler(request);
-}
+export { handler as GET, handler as POST };
