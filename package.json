@@ -5,7 +5,7 @@
   "homepage": "https://github.com/aowkoakwokwa/kalibrasi",
   "scripts": {
     "dev": "next dev --turbopack ",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
