@@ -7,15 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model bukti_perpanjangan {
-  bukti_perpanjangan Bytes?
-  jft_no             String? @db.VarChar(50)
-  cir_no             String? @db.VarChar(50)
-
-  @@ignore
-}
-
 model cardek {
   id           Int       @id @default(autoincrement())
   jft_no       String    @db.VarChar(30)
@@ -33,17 +24,6 @@ model cardek_file {
   id_cardek_file Int    @id @default(autoincrement())
   jft_no         String @db.VarChar(30)
   file           String @db.VarChar(255)
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model cetak_barcode {
-  jft_no   String    @db.VarChar(30)
-  cal_date DateTime? @db.Date
-  due_date DateTime? @db.Date
-  name     String?   @db.VarChar(255)
-  barcode  Bytes?    @db.Blob
-
-  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -72,9 +52,9 @@ model kalibrasi_eksternal {
   tanggal     DateTime?                   @db.Date
   tgl_kembali String?                     @db.VarChar(30)
   status      kalibrasi_eksternal_status? @default(Belum_Kembali)
-  barcode     Bytes?                      @db.Blob
   bulan       String?                     @db.VarChar(30)
   tahun       String?                     @db.VarChar(4)
+  barcode     Bytes?                      @db.Blob
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -174,7 +154,6 @@ model peminjaman_tool {
   tgl_diterima    DateTime?               @db.DateTime(0)
   tgl_kembali     String?                 @db.VarChar(30)
   status          peminjaman_tool_status? @default(Belum_Kembali)
-  barcode         Bytes?                  @db.Blob
   bulan           String?                 @db.VarChar(30)
   tahun           String?                 @db.VarChar(4)
   location        String?                 @default("-") @db.VarChar(255)
@@ -193,7 +172,7 @@ model peminjaman_tool_detail {
   usage_no  String    @db.VarChar(20)
   jft_no    String?   @db.VarChar(30)
   kembali   String?   @default("Ya") @db.VarChar(10)
-  tanggal   DateTime? @default(now()) @db.Date
+  tanggal   DateTime? @default(now()) @db.DateTime(0)
   kondisi   String?   @default("-") @db.VarChar(30)
   kondisi2  String?   @default("-") @db.VarChar(30)
   id        Int       @id @default(autoincrement())
@@ -251,13 +230,6 @@ model rekap_fault {
   @@ignore
 }
 
-model usage_snapshot {
-  usage_no   String @id @default("") @db.VarChar(30)
-  entry_pic  Bytes? @db.MediumBlob
-  edit_pic   Bytes? @db.MediumBlob
-  return_pic Bytes? @db.MediumBlob
-}
-
 model user {
   username   String?          @db.VarChar(30)
   password   String?          @db.VarChar(100)
@@ -282,14 +254,6 @@ model ncr_report {
   ncr_desc   String   @db.VarChar(255)
   case       String   @db.VarChar(30)
   pcs        Int
-}
-
-model session {
-  id_token     String   @db.VarChar(255)
-  sessionToken String   @db.LongText
-  id_user      String   @db.VarChar(255)
-  expires      DateTime @db.DateTime(0)
-  id           Int      @id @default(autoincrement())
 }
 
 enum ncr_master_source {
