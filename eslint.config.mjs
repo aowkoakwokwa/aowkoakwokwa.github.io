@@ -1,18 +1,24 @@
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import tseslint from 'typescript-eslint';
+
+// Import parser dan plugin dari @typescript-eslint
+import parser from '@typescript-eslint/parser';
+import plugin from '@typescript-eslint/eslint-plugin';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export default tseslint.config(
+export default [
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      parser: tseslint.parser,
+      parser: parser,
       parserOptions: {
         project: './tsconfig.json',
       },
+    },
+    plugins: {
+      '@typescript-eslint': plugin,
     },
     rules: {},
   },
@@ -23,5 +29,6 @@ export default tseslint.config(
         ecmaVersion: 2020,
       },
     },
+    rules: {},
   },
-);
+];
