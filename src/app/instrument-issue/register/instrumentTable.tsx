@@ -1,3 +1,5 @@
+'use client';
+
 import { Checkbox, Input, Table } from '@mui/joy';
 import TablePagination from '@mui/material/TablePagination';
 import { getInstrumentData } from '@/lib/getData';

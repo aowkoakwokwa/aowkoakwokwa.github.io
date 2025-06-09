@@ -1,3 +1,5 @@
+'use client';
+
 import { getUserAccount } from '@/lib/getData';
 import { Checkbox, Table, Skeleton, Avatar } from '@mui/joy';
 import {

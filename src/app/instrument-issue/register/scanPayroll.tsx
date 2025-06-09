@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, Input, Autocomplete } from '@mui/joy';
 import { Dialog, DialogContent, DialogTitle } from '@mui/material';
 import { useEffect, useState } from 'react';

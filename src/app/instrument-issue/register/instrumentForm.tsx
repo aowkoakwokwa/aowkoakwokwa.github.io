@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, Input } from '@mui/joy';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import dayjs from 'dayjs';
@@ -31,9 +33,15 @@ export default function InstrumentForm({
     dayjs().format('MM/DD/YYYY HH:mm:ss'),
   );
 
-  const payrollId = sessionStorage.getItem('payroll_id');
-  const payrollName = sessionStorage.getItem('payroll_name');
-  const payrollDepartement = sessionStorage.getItem('departement');
+  const [payrollId, setPayrollId] = useState('');
+  const [payrollName, setPayrollName] = useState('');
+  const [payrollDepartement, setPayrollDepartement] = useState('');
+
+  useEffect(() => {
+    setPayrollId(sessionStorage.getItem('payroll_id') || '');
+    setPayrollName(sessionStorage.getItem('payroll_name') || '');
+    setPayrollDepartement(sessionStorage.getItem('departement') || '');
+  }, []);
 
   useEffect(() => {
     form.setValue('usage_no', usageNo);

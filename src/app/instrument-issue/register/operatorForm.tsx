@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { Autocomplete } from '@mui/joy';

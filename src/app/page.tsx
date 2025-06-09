@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { styled } from '@mui/material/styles';
 import Switch from '@mui/material/Switch';
 import { Button, CircularProgress } from '@mui/material';
-import { useAuth } from '../components/AuthProvider'; // kalau tidak dipakai, bisa dihapus
 import { useRouter } from 'next/navigation';
 import { useSnackbar } from 'notistack';
 import { signIn, getSession } from 'next-auth/react';

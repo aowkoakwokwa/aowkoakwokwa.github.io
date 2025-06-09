@@ -1,3 +1,5 @@
+'use client';
+
 import { getCardek } from '@/lib/getData';
 import { Input } from '@mui/joy';
 import { Dialog, DialogContent, DialogTitle } from '@mui/material';

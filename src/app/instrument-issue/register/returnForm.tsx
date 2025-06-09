@@ -1,3 +1,5 @@
+'use client';
+
 import { Button, Input } from '@mui/joy';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
@@ -30,8 +32,17 @@ export default function ReturnForm({
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [currentDateTime, setCurrentDateTime] = useState('');
   const checkedMap = useCheckedInstrumentStore((state) => state.checkedInstrumentMap);
-  const payrollId = sessionStorage.getItem('payroll_id') || '';
-  const payrollName = sessionStorage.getItem('payroll_name') || '';
+  const [payrollId, setPayrollId] = useState('');
+  const [payrollName, setPayrollName] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const id = sessionStorage.getItem('payroll_id') || '';
+      const name = sessionStorage.getItem('payroll_name') || '';
+      setPayrollId(id);
+      setPayrollName(name);
+    }
+  }, []);
   const returnBy = `${payrollId} - ${payrollName}` || '';
 
   useEffect(() => {

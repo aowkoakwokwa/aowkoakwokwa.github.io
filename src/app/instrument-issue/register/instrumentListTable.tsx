@@ -1,3 +1,5 @@
+'use client';
+
 import { getInstrumentDataDetail, getMaster } from '@/lib/getData';
 import { Checkbox, Table } from '@mui/joy';
 import { useQuery } from '@tanstack/react-query';

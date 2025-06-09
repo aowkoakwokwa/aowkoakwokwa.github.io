@@ -1,3 +1,5 @@
+'use client';
+
 import { getLastBorrowStatus, getMaster, getNonMaster } from '@/lib/getData';
 import { Input, Table, Autocomplete } from '@mui/joy';
 import { Dialog, DialogContent, DialogTitle, styled, TablePagination } from '@mui/material';

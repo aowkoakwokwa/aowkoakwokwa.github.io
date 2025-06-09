@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Input } from '@mui/joy';
 import dayjs from 'dayjs';
