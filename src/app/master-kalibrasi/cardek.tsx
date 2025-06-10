@@ -26,6 +26,8 @@ import CalibrationRecordPDF from './cardekPrint';
 import { pdf } from '@react-pdf/renderer';
 
 interface CalibrationRecord {
+  jft_no: string;
+  desc: string;
   cal_date: string;
   next_cal_date: string;
   frequency: string;
@@ -74,6 +76,7 @@ export default function Cardek({
   const calFreq = dataCardeck?.[2] ?? '-';
   const calSource = dataCardeck?.[3] ?? '-';
   const acceptCriteria = dataCardeck?.[4] ?? '-';
+  const desc = dataCardeck?.[5] ?? '-';
   const [printData, setPrintData] = useState<CalibrationRecord[]>([]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -82,58 +85,40 @@ export default function Cardek({
 
   const calculateNextCalibration = (calDate: string, frequency: string) => {
     if (!calDate || !frequency) return '-';
-
     const date = dayjs(calDate);
-
     const match = frequency.match(/(\d+)\s*(Week|Weeks|Year|Years|Month|Months)/i);
     if (!match) return '-';
-
     const amount = parseInt(match[1], 10);
     const unit = match[2].toLowerCase();
-
     switch (unit) {
       case 'week':
       case 'weeks':
-        return date.add(amount, 'week').format('MM/DD/YYYY');
+        return date.add(amount, 'week').format('DD/MM/YYYY');
       case 'month':
       case 'months':
-        return date.add(amount, 'month').format('MM/DD/YYYY');
+        return date.add(amount, 'month').format('DD/MM/YYYY');
       case 'year':
       case 'years':
-        return date.add(amount, 'year').format('MM/DD/YYYY');
+        return date.add(amount, 'year').format('DD/MM/YYYY');
       default:
         return '-';
     }
   };
 
   const handlePrint = async () => {
-    const formattedData: CalibrationRecord[] = paginatedData.map((row) => ({
-      cal_date: row.cal_date ? dayjs(row.cal_date).format('DD/MM/YYYY') : '-',
-      next_cal_date: row.cal_date
-        ? dayjs(calculateNextCalibration(String(row.cal_date), calFreq)).format('DD/MM/YYYY')
-        : '-',
-      frequency: calFreq || '-',
-      source: calSource || '-',
-      inspection_no: row.rept_no || '-',
-      cert_no: row.sert_no || '-',
-      accept_criteria: acceptCriteria || '-',
-      location: row.cal_location || '-',
-      signature: row.cal_name || '-',
-    }));
-
-    const blob = await pdf(<CalibrationRecordPDF data={formattedData} />).toBlob();
+    const blob = await pdf(<CalibrationRecordPDF data={printData} />).toBlob();
     const url = URL.createObjectURL(blob);
 
     const newWindow = window.open('', '_blank');
     if (newWindow) {
       newWindow.document.write(`
-      <html>
-        <head><title>Print Preview</title></head>
-        <body style="margin:0;">
-          <iframe src="${url}" style="width:100%; height:100vh; border:none;"></iframe>
-        </body>
-      </html>
-    `);
+        <html>
+          <head><title>Print Preview</title></head>
+          <body style="margin:0;">
+            <iframe src="${url}" style="width:100%; height:100vh; border:none;"></iframe>
+          </body>
+        </html>
+      `);
       newWindow.document.close();
     }
   };
@@ -155,6 +140,28 @@ export default function Cardek({
   const filteredData = masterData?.filter((item: any) => item.jft_no === jft_no) || [];
   const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  useEffect(() => {
+    if (filteredData.length > 0) {
+      const formatted = filteredData.map((row: any) => ({
+        jft_no: jft_no,
+        desc: desc,
+        cal_date: row.cal_date ? dayjs(row.cal_date).format('DD/MM/YYYY') : '-',
+        next_cal_date: row.cal_date ? calculateNextCalibration(String(row.cal_date), calFreq) : '-',
+        frequency: calFreq || '-',
+        source: calSource || '-',
+        inspection_no: row.rept_no || '-',
+        cert_no: row.cert_no || '-',
+        accept_criteria: acceptCriteria || '-',
+        location: row.cal_location || '-',
+        signature: row.cal_name || '-',
+      }));
+      const isSame = JSON.stringify(printData) === JSON.stringify(formatted);
+      if (!isSame) {
+        setPrintData(formatted);
+      }
+    }
+  }, [filteredData, calFreq, calSource, acceptCriteria, desc]);
+
   return (
     <>
       <Dialog open={open} onClose={close} maxWidth="xl" fullWidth>
@@ -171,7 +178,6 @@ export default function Cardek({
                     <TableCell sx={{ fontWeight: 'bold' }}>Freq.</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Source</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Rept. No</TableCell>
-                    <TableCell sx={{ fontWeight: 'bold' }}>Cert. No</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Accept Criteria</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Cal. Location</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
@@ -192,16 +198,11 @@ export default function Cardek({
                         <TableCell className="overflow-x-auto truncate">
                           {dayjs(row.cal_date).format('DD/MM/YYYY')}
                         </TableCell>
-                        <TableCell className="overflow-x-auto truncate">
-                          {dayjs(nextCalDate).format('DD/MM/YYYY')}
-                        </TableCell>
+                        <TableCell className="overflow-x-auto truncate">{nextCalDate}</TableCell>
                         <TableCell className="overflow-x-auto truncate">{calFreq}</TableCell>
                         <TableCell className="overflow-x-auto truncate">{calSource}</TableCell>
                         <TableCell className="overflow-x-auto truncate">
                           {row.rept_no || '-'}
-                        </TableCell>
-                        <TableCell className="overflow-x-auto truncate">
-                          {row.cert_no || '-'}
                         </TableCell>
                         <TableCell className="overflow-x-auto truncate">{acceptCriteria}</TableCell>
                         <TableCell className="overflow-x-auto truncate">
@@ -259,7 +260,6 @@ export default function Cardek({
               Delete Selected
             </Button>
           )}
-          {printData.length > 0 && <CalibrationRecordPDF data={printData} />}
           <Button
             onClick={handlePrint}
             color="warning"

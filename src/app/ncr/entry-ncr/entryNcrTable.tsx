@@ -20,6 +20,7 @@ interface EntryNcrFormProps {
   verified_date: string | Date;
   fault: string;
   departement: string;
+  lampiran: string;
 }
 
 interface EntryNCRTableProps {
@@ -103,6 +104,7 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
               'Verified Date',
               'Fault Code',
               'Departement',
+              'Lampiran',
             ].map((header, index) => {
               if (index === 0 && userLevel !== 'Admin') return null;
               return (
@@ -160,12 +162,24 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
                   formatDate(entry.verified_date),
                   entry.fault,
                   entry.departement,
+                  entry.lampiran,
                 ].map((value, idx) => (
                   <TableCell
                     key={idx}
                     className="max-w-[150px] overflow-hidden whitespace-nowrap text-ellipsis"
                   >
-                    {value}
+                    {idx === 15 && value ? (
+                      <a
+                        href={value as string}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >
+                        Lihat
+                      </a>
+                    ) : (
+                      value
+                    )}
                   </TableCell>
                 ))}
               </TableRow>

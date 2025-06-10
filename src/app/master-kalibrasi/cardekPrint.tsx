@@ -53,9 +53,15 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: 'bold',
   },
+  footer: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
 });
 
 interface CalibrationRecord {
+  jft_no: string;
+  desc: string;
   cal_date: string;
   next_cal_date: string;
   frequency: string;
@@ -71,6 +77,13 @@ const CalibrationRecordPDF: React.FC<{ data: CalibrationRecord[] }> = ({ data })
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
+        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <View style={{ padding: 5, borderWidth: 2, borderBottomWidth: 1, borderColor: '#000' }}>
+            <Text style={{ fontSize: 10 }}>FORM NO. : 04 - 04</Text>
+            <Text style={{ fontSize: 10 }}>REV NO. : 03</Text>
+            <Text style={{ fontSize: 10 }}>DATE Rev : June 5th, 2025</Text>
+          </View>
+        </View>
         <View style={styles.header}>
           <Image style={styles.logo} src="/images/logo.png" />
 
@@ -80,7 +93,6 @@ const CalibrationRecordPDF: React.FC<{ data: CalibrationRecord[] }> = ({ data })
           </View>
         </View>
 
-        {/* Table Header */}
         <View style={styles.table}>
           <Text style={styles.title}>CALIBRATION RECORD CARD</Text>
           <View style={[styles.row, styles.bold]}>
@@ -89,11 +101,10 @@ const CalibrationRecordPDF: React.FC<{ data: CalibrationRecord[] }> = ({ data })
               'NEXT CAL DATE',
               'CAL FREQUENCY',
               'CAL SOURCE',
-              'INSPECTION REPT. NO',
-              'CERT. NO',
+              'REPT. NO',
               'ACCEPT CRITERIA',
               'CAL LOCATION',
-              'NAME & SIGNATURE',
+              'NAME / SIGNATURE',
             ].map((header, index) => (
               <Text key={index} style={styles.cell}>
                 {header}
@@ -109,12 +120,30 @@ const CalibrationRecordPDF: React.FC<{ data: CalibrationRecord[] }> = ({ data })
               <Text style={styles.cell}>{row.frequency}</Text>
               <Text style={styles.cell}>{row.source}</Text>
               <Text style={styles.cell}>{row.inspection_no}</Text>
-              <Text style={styles.cell}>{row.cert_no || '-'}</Text>
               <Text style={styles.cell}>{row.accept_criteria}</Text>
               <Text style={styles.cell}>{row.location}</Text>
               <Text style={styles.cell}>{row.signature}</Text>
             </View>
           ))}
+
+          <View style={[styles.row, styles.bold]}>
+            <Text
+              style={[
+                styles.footer,
+                { width: '75%', borderWidth: 1, borderColor: '#000', padding: 5 },
+              ]}
+            >
+              DESC: {data.length > 0 ? data[0].desc : '-'}
+            </Text>
+            <Text
+              style={[
+                styles.footer,
+                { width: '25%', borderWidth: 1, borderColor: '#000', padding: 5 },
+              ]}
+            >
+              JFT NO.: {data.length > 0 ? data[0].jft_no : '-'}
+            </Text>
+          </View>
         </View>
       </Page>
     </Document>

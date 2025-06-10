@@ -1154,16 +1154,14 @@ const DialogPerpanjang = ({
                     <Controller
                       control={form.control}
                       name="calibration_date"
+                      defaultValue={new Date().toISOString().split('T')[0]}
                       render={({ field: { value, onChange } }) => {
                         const today = new Date();
-                        const formattedDate = value
-                          ? new Date(value).toISOString().split('T')[0]
-                          : '';
 
                         return (
                           <input
                             type="date"
-                            value={formattedDate}
+                            value={value || today.toISOString().split('T')[0]}
                             onChange={(e) => onChange(e.target.value)}
                             min={today.toISOString().split('T')[0]}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-[#fbfcfe] text-gray-500"
@@ -1212,7 +1210,7 @@ const DialogPerpanjang = ({
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="block font-medium mb-1">CIR No.</label>
+                  <label className="block font-medium mb-1">REPT No.</label>
                   <Controller
                     control={form.control}
                     name="cir_no"
@@ -1283,7 +1281,7 @@ const DialogPerpanjang = ({
               </div>
               <div className="flex flex-row w-full gap-4">
                 <div className="w-full">
-                  <div className="mb-4">
+                  <div className="mb-4 hidden">
                     <label className="block font-medium mb-1">Cert No.</label>
                     <Controller
                       control={form.control}

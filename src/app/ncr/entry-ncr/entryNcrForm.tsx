@@ -98,7 +98,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
         }
 
         const fileData = await uploadResponse.json();
-        lampiranPath = `/lampiran/ncr/${fileData.fileName}`;
+        lampiranPath = `https://aowkoakwokwa.github.io/public/lampiran/ncr/${fileData.fileName}`;
       }
 
       const formattedData = {
