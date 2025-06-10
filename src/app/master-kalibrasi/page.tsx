@@ -953,7 +953,7 @@ const DialogPerpanjang = ({
           throw new Error(`File upload failed: ${uploadResponse.statusText}`);
         }
         const fileData = await uploadResponse.json();
-        lampiranPath = `/lampiran/kalibrasi/${fileData.fileName}`;
+        lampiranPath = `https://aowkoakwokwa.github.io/public/lampiran/kalibrasi/${fileData.fileName}`;
       }
 
       const updatedData = {
@@ -1886,7 +1886,7 @@ const DialogEdit = ({
         const fileData = await uploadResponse.json();
         console.log('File uploaded successfully:', fileData);
 
-        lampiranPath = `/lampiran/kalibrasi/${fileData.fileName}`;
+        lampiranPath = `https://aowkoakwokwa.github.io/public/lampiran/kalibrasi/${fileData.fileName}`;
       }
 
       const updatedData = {
