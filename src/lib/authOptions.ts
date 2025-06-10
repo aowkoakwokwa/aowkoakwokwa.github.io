@@ -12,13 +12,13 @@ export const authOptions: AuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, req) {
-        // const forwarded = req?.headers?.['x-forwarded-for'];
-        // let ip = typeof forwarded === 'string' ? forwarded.split(',')[0] : 'Tidak diketahui';
-        // if (ip.startsWith('::ffff:')) ip = ip.substring(7).trim();
+        const forwarded = req?.headers?.['x-forwarded-for'];
+        let ip = typeof forwarded === 'string' ? forwarded.split(',')[0] : 'Tidak diketahui';
+        if (ip.startsWith('::ffff:')) ip = ip.substring(7).trim();
 
-        // console.log(ip);
+        console.log('ipaddress' + ip);
 
-        if (!credentials?.username || !credentials?.password) {
+        if (!credentials?.username || !credentials?.password || !ip) {
           throw new Error('Username and password required Or Pc Not Yours');
         }
 
@@ -26,7 +26,7 @@ export const authOptions: AuthOptions = {
           where: {
             username: credentials.username,
             password: credentials.password,
-            // pc_name: ip,
+            pc_name: ip,
           },
         });
 

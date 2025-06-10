@@ -1455,7 +1455,7 @@ const DialogTambah = ({
 
         const fileData = await uploadResponse.json();
 
-        lampiranPath = `/lampiran/kalibrasi/${fileData.fileName}`;
+        lampiranPath = `https://aowkoakwokwa.github.io/public/lampiran/kalibrasi/${fileData.fileName}`;
       }
 
       const dataToSubmit = {

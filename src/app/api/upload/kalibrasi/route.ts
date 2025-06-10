@@ -1,60 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
 import { randomUUID } from 'crypto';
-import crypto from 'crypto';
 
-const SECRET_KEY = process.env.SECRET_KEY || 'Saga12345#';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
+const GITHUB_REPO = process.env.GITHUB_REPO!;
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+const GITHUB_PATH = 'public/lampiran/kalibrasi/';
 
 export async function POST(req: NextRequest) {
-  try {
-    const contentType = req.headers.get('content-type') || '';
-    if (!contentType.includes('multipart/form-data')) {
-      return NextResponse.json({ error: 'Invalid content-type' }, { status: 400 });
-    }
+  const formData = await req.formData();
+  const file = formData.get('lampiran') as File;
+  const filename = randomUUID() + '.pdf';
 
-    const formData = await req.formData();
-    const file = formData.get('lampiran') as File | null;
-    const id = formData.get('no_jft') as string;
-    const hash = crypto.createHmac('sha256', SECRET_KEY).update(id).digest('base64');
-    const finalEncoded = hash.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12);
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const contentBase64 = buffer.toString('base64');
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
-    }
+  const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_PATH}${filename}`;
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: `token ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github.v3+json',
+    },
+    body: JSON.stringify({
+      message: `Upload ${filename}`,
+      content: contentBase64,
+      branch: GITHUB_BRANCH,
+    }),
+  });
 
-    const ext = path.extname(file.name);
-    const newFileName = `${randomUUID()}-${finalEncoded}${ext}`;
+  const data = await response.json();
 
-    const uploadDir = path.join(process.cwd(), 'public/lampiran/kalibrasi');
-    const filePath = path.join(uploadDir, newFileName);
-
-    await writeFile(filePath, buffer);
-
-    return NextResponse.json({
-      message: 'File uploaded successfully',
-      fileName: newFileName,
-    });
-  } catch (error: unknown) {
-    console.error('Error handling form data:', error);
-
-    const message =
-      error &&
-      typeof error === 'object' &&
-      'message' in error &&
-      typeof (error as any).message === 'string'
-        ? (error as any).message
-        : 'Unknown error';
-
-    return NextResponse.json({ error: message }, { status: 500 });
+  if (!response.ok) {
+    return NextResponse.json({ error: data.message || 'Upload failed' }, { status: 500 });
   }
+
+  return NextResponse.json({
+    message: 'File uploaded successfully',
+    fileName: filename,
+    url: data.content.download_url,
+  });
 }

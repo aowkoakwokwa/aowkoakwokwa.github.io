@@ -7,7 +7,8 @@ export async function GET() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    throw new Error('Unauthorized');
+    console.log('trueee');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
@@ -23,12 +24,15 @@ export async function GET() {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json(user);
   } catch (error) {
     console.error('Failed to get user:', error);
-    return NextResponse.json({ error: `Internal Server Error (${error})` }, { status: 500 });
+    return NextResponse.json(
+      { error: (error as Error).message || 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 }
