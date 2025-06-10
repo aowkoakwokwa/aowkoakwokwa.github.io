@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 import { randomUUID } from 'crypto';
 import { createCanvas, loadImage, registerFont } from 'canvas';
+import path from 'path';
+
+// Gantilah dengan token GitHub-mu sendiri
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
+const GITHUB_REPO = process.env.GITHUB_REPO!;
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+const GITHUB_FOLDER_PATH = 'public/images/instrument';
 
 export const config = {
   api: {
@@ -28,7 +33,6 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     const image = await loadImage(buffer);
-
     registerFont(path.join(process.cwd(), 'fonts', 'VarelaRound-Regular.ttf'), {
       family: 'Varela Round',
     });
@@ -53,25 +57,44 @@ export async function POST(req: NextRequest) {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 2;
 
-    const x = 20;
-    const y = 30;
-
-    ctx.strokeText(timestamp, x, y);
-    ctx.fillText(timestamp, x, y);
+    ctx.strokeText(timestamp, 20, 30);
+    ctx.fillText(timestamp, 20, 30);
 
     const ext = path.extname(file.name) || '.png';
     const newFileName = `${randomUUID()}${ext}`;
-    const uploadDir = path.join(process.cwd(), `public/images/instrument/${type}`);
-    const filePath = path.join(uploadDir, newFileName);
+    const githubFilePath = `${GITHUB_FOLDER_PATH}/${type}/${newFileName}`;
 
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(filePath, canvas.toBuffer());
+    const encodedContent = canvas.toBuffer().toString('base64');
+
+    const githubApiUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${githubFilePath}`;
+
+    const uploadResponse = await fetch(githubApiUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+      },
+      body: JSON.stringify({
+        message: `Upload ${type} image: ${newFileName}`,
+        content: encodedContent,
+        branch: GITHUB_BRANCH,
+      }),
+    });
+
+    const uploadResult = await uploadResponse.json();
+
+    if (!uploadResponse.ok) {
+      return NextResponse.json(
+        { error: uploadResult.message || 'GitHub upload failed' },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({
       message: 'File uploaded successfully',
       fileName: newFileName,
-      path: `/images/instrument/${type}/${newFileName}`,
-      type,
+      githubUrl: uploadResult.content.html_url,
+      rawUrl: `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${githubFilePath}`,
     });
   } catch (error: unknown) {
     const message =
