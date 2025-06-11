@@ -4,16 +4,12 @@ import { Button, Input } from '@mui/joy';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { getInstrumentData } from '@/lib/getData';
-import {
-  useCheckedInstrumentStore,
-  useInstrumentStore,
-  usePayrollStore,
-} from '../../../../store/store';
+import { useCheckedInstrumentStore, useInstrumentStore } from '../../../../store/store';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import DateTimePicker from './customDateTime';
 import InstrumentListTable from './instrumentListTable';
 import { editReturnData } from '@/lib/editData';
+import { CircularProgress } from '@mui/joy';
 import OperatorForm from './operatorForm';
 
 export default function ReturnForm({
@@ -26,7 +22,6 @@ export default function ReturnForm({
   onSuccess: () => void;
 }) {
   const { selectedId, setSelectedId } = useInstrumentStore();
-  // const { setOpenPayroll, setFromReturnForm } = usePayrollStore();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
@@ -34,6 +29,7 @@ export default function ReturnForm({
   const checkedMap = useCheckedInstrumentStore((state) => state.checkedInstrumentMap);
   const [payrollId, setPayrollId] = useState('');
   const [payrollName, setPayrollName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -111,7 +107,9 @@ export default function ReturnForm({
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Upload gagal');
 
-    return data.fileName;
+    const lampiranPath = `https://aowkoakwokwa.github.io/public/images/instrument/return/${data.fileName}`;
+
+    return lampiranPath;
   };
 
   const { data = [] } = useQuery({
@@ -157,6 +155,14 @@ export default function ReturnForm({
   }, [selectedInstrument, form]);
 
   const handleClose = () => {
+    if (videoRef.current) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    }
+
     setSelectedId(null);
     sessionStorage.removeItem('payroll_id');
     sessionStorage.removeItem('payroll_name');
@@ -174,6 +180,7 @@ export default function ReturnForm({
         const stream = videoRef.current.srcObject as MediaStream;
         if (stream) {
           stream.getTracks().forEach((track) => track.stop());
+          videoRef.current.srcObject = null;
         }
       }
       onSuccess();
@@ -185,34 +192,25 @@ export default function ReturnForm({
     },
   });
 
+  const formatDateToInputValue = (date: Date) => {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
   useEffect(() => {
+    if (!open) return;
+
     const updateTime = () => {
       const now = new Date();
-      const formatted = now
-        .toLocaleString('sv-SE', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-          timeZone: 'Asia/Makassar',
-        })
-        .replace(' ', ' ');
+      const formatted = formatDateToInputValue(now);
       setCurrentDateTime(formatted);
+      form.setValue('tgl_kembali', formatted);
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 1000);
-
+    const interval = setInterval(updateTime, 1000); // update tiap detik
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (currentDateTime) {
-      form.setValue('tgl_kembali', currentDateTime);
-    }
-  }, [currentDateTime, form]);
+  }, [open]);
 
   return (
     <>
@@ -296,17 +294,15 @@ export default function ReturnForm({
                 <Controller
                   control={form.control}
                   name="tgl_kembali"
-                  render={({ field: { value, onChange } }) => {
-                    return (
-                      <Input
-                        required
-                        value={currentDateTime}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
-                        placeholder="YYYY-MM-DD HH:MM:SS"
-                        readOnly
-                      />
-                    );
-                  }}
+                  render={({ field }) => (
+                    <Input
+                      type="datetime-local"
+                      {...field}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
+                      value={field.value || ''}
+                      readOnly // optional, jika ingin mencegah user ubah manual
+                    />
+                  )}
                 />
               </div>
               <div className="mb-4">
@@ -367,24 +363,34 @@ export default function ReturnForm({
             Cancel
           </Button>
           <Button
+            startDecorator={isSubmitting ? <CircularProgress size="sm" variant="soft" /> : null}
+            disabled={isSubmitting}
             onClick={form.handleSubmit(async (data) => {
-              const imageBlob = await captureImage();
-              const uploadedFileName = await uploadImage(imageBlob, 'return');
+              try {
+                setIsSubmitting(true);
+                const imageBlob = await captureImage();
+                const uploadedFileName = await uploadImage(imageBlob, 'return');
 
-              const nameOnly = data.nama.split(' - ')[1] || data.nama;
+                const nameOnly = data.nama.split(' - ')[1] || data.nama;
 
-              const detailArray = checkedMap[data.usage_no] || [];
-              const isReturnedAll = detailArray.every((item) => item.return === true);
-              const status = isReturnedAll ? 'Sudah_Kembali' : 'Belum_Kembali';
+                const detailArray = checkedMap[data.usage_no] || [];
+                const isReturnedAll = detailArray.every((item) => item.return === true);
+                const status = isReturnedAll ? 'Sudah_Kembali' : 'Belum_Kembali';
 
-              mutation.mutate({
-                ...data,
-                nama: nameOnly,
-                detail: checkedMap,
-                return_by: returnBy || '',
-                status,
-                imageUrl: `/images/instrument/return/${uploadedFileName}`,
-              });
+                mutation.mutate({
+                  ...data,
+                  nama: nameOnly,
+                  detail: checkedMap,
+                  return_by: returnBy || '',
+                  status,
+                  imageUrl: `${uploadedFileName}`,
+                });
+              } catch (error: any) {
+                console.error('Submit error:', error);
+                alert(error.message || 'Terjadi kesalahan saat submit');
+              } finally {
+                setIsSubmitting(false);
+              }
             })}
             color="success"
           >

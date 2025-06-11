@@ -113,23 +113,27 @@ export default function Page() {
         }}
       />
 
-      <InstrumentForm
-        open={openInstrument}
-        close={() => {
-          sessionStorage.clear();
-          setOpenInstrument(false);
-        }}
-        onSuccess={() => setRefetch((prev) => !prev)}
-      />
+      {openInstrument && (
+        <InstrumentForm
+          open={true}
+          close={() => {
+            sessionStorage.clear();
+            setOpenInstrument(false);
+          }}
+          onSuccess={() => setRefetch((prev) => !prev)}
+        />
+      )}
 
-      <ReturnForm
-        open={openReturn}
-        close={() => {
-          sessionStorage.clear();
-          setOpenReturn(false);
-        }}
-        onSuccess={() => setRefetch((prev) => !prev)}
-      />
+      {openReturn && (
+        <ReturnForm
+          open={true}
+          close={() => {
+            sessionStorage.clear();
+            setOpenReturn(false);
+          }}
+          onSuccess={() => setRefetch((prev) => !prev)}
+        />
+      )}
 
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
         <DialogTitle>Hapus Data</DialogTitle>

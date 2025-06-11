@@ -42,7 +42,7 @@ export default function InstrumentTable({ reload }: any) {
   }, [reload]);
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(13);
   const [previewImage, setPreviewImage] = useState<{ issued?: string; returned?: string } | null>(
     null,
   );
@@ -52,11 +52,15 @@ export default function InstrumentTable({ reload }: any) {
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setRowsPerPage(parseInt(event.target.value, 13));
     setPage(0);
   };
 
-  const filteredData = data.filter((item: any) => {
+  const sortedData = [...data].sort(
+    (a, b) => dayjs(b.tgl_diterima).valueOf() - dayjs(a.tgl_diterima).valueOf(),
+  );
+
+  const filteredData = sortedData.filter((item: any) => {
     if (filterStatus === 'inuse') {
       return item.status === 'Belum_Kembali';
     } else if (filterStatus === 'period' && monthFilter) {
@@ -206,7 +210,7 @@ export default function InstrumentTable({ reload }: any) {
             >
               <SwiperSlide className="relative">
                 <img
-                  src={previewImage.issued}
+                  src={previewImage.issued || 'No Issued Image'}
                   alt="Issued"
                   className="w-full h-full object-contain"
                 />
@@ -217,7 +221,7 @@ export default function InstrumentTable({ reload }: any) {
               <SwiperSlide className="relative">
                 {previewImage.returned ? (
                   <img
-                    src={previewImage.returned}
+                    src={previewImage.returned || 'No Returned Image'}
                     alt="Returned"
                     className="w-full h-full object-contain"
                   />
@@ -243,7 +247,7 @@ export default function InstrumentTable({ reload }: any) {
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[10]}
+          rowsPerPageOptions={[13]}
         />
       </div>
     </div>

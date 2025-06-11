@@ -4,9 +4,10 @@ import { Button, Input } from '@mui/joy';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import dayjs from 'dayjs';
 import { useEffect, useRef, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, set, useForm } from 'react-hook-form';
 import PickInstrument from './pickInstrument';
-import { useInstrumentStore, useScannedStore } from '../../../../store/store';
+import { useScannedStore } from '../../../../store/store';
+import { CircularProgress } from '@mui/joy';
 import { useMutation } from '@tanstack/react-query';
 import DateTimePicker from './customDateTime';
 import { insertDataInstrument } from '@/lib/insertData';
@@ -32,15 +33,25 @@ export default function InstrumentForm({
   const [currentDateTime, setCurrentDateTime] = useState<string>(
     dayjs().format('MM/DD/YYYY HH:mm:ss'),
   );
-
   const [payrollId, setPayrollId] = useState('');
   const [payrollName, setPayrollName] = useState('');
   const [payrollDepartement, setPayrollDepartement] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setPayrollId(sessionStorage.getItem('payroll_id') || '');
-    setPayrollName(sessionStorage.getItem('payroll_name') || '');
-    setPayrollDepartement(sessionStorage.getItem('departement') || '');
+    const timeout = setTimeout(() => {
+      const id = sessionStorage.getItem('payroll_id');
+      const name = sessionStorage.getItem('payroll_name');
+      const dept = sessionStorage.getItem('departement');
+
+      console.log('Dari session:', { id, name, dept });
+
+      setPayrollId(id || '');
+      setPayrollName(name || '');
+      setPayrollDepartement(dept || '');
+    }, 300);
+
+    return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -93,6 +104,24 @@ export default function InstrumentForm({
     return () => clearInterval(interval);
   }, [form]);
 
+  const handleClose = () => {
+    if (videoRef.current) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    }
+
+    clearScannedData();
+
+    form.reset();
+
+    const newUsageNo = `P${dayjs().format('YYMMDDHHmmss')}`;
+    setUsageNo(newUsageNo);
+    form.setValue('usage_no', newUsageNo);
+  };
+
   const captureImage = (): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       if (!videoRef.current || !videoRef.current.srcObject) {
@@ -141,7 +170,9 @@ export default function InstrumentForm({
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Upload gagal');
 
-    return data.path;
+    const lampiranPath = `https://aowkoakwokwa.github.io/public/images/instrument/issued/${data.fileName}`;
+
+    return lampiranPath;
   };
 
   const mutation = useMutation({
@@ -155,8 +186,7 @@ export default function InstrumentForm({
 
       return response;
     },
-    onSuccess: (data) => {
-      // Matikan kamera
+    onSuccess: () => {
       if (videoRef.current) {
         const stream = videoRef.current.srcObject as MediaStream;
         if (stream) {
@@ -165,7 +195,6 @@ export default function InstrumentForm({
         }
       }
 
-      // Bersihkan sessionStorage
       sessionStorage.removeItem('payroll_id');
       sessionStorage.removeItem('payroll_name');
       sessionStorage.removeItem('departement');
@@ -189,6 +218,7 @@ export default function InstrumentForm({
 
   const handleSubmit = async (data: any) => {
     try {
+      setIsSubmitting(true);
       if (!Array.isArray(scannedData) || scannedData.length === 0) {
         alert('Tidak ada data yang dipilih');
         return;
@@ -202,6 +232,8 @@ export default function InstrumentForm({
         imageUrl,
       };
 
+      console.log(mainData);
+
       const detailData = scannedData.map((item: any) => ({
         usage_no: data.usage_no,
         jft_no: item.no_jft ?? null,
@@ -211,6 +243,8 @@ export default function InstrumentForm({
     } catch (error: any) {
       console.error('Submit error:', error);
       alert(error.message || 'Terjadi kesalahan saat submit');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -339,25 +373,32 @@ export default function InstrumentForm({
           <Button onClick={() => setOpenList(true)} color="success">
             List Barang
           </Button>
-          <Button onClick={() => handleSubmit(form.getValues())} color="primary">
-            Submit
+          <Button
+            onClick={form.handleSubmit(handleSubmit)}
+            color="primary"
+            disabled={isSubmitting}
+            startDecorator={isSubmitting ? <CircularProgress size="sm" variant="soft" /> : null}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </Button>
+
           <Button
             onClick={() => {
               sessionStorage.removeItem('payroll_id');
               sessionStorage.removeItem('payroll_name');
               sessionStorage.removeItem('departement');
               sessionStorage.removeItem('scannedData');
-              clearScannedData();
-
+              handleClose();
               close();
             }}
             color="danger"
           >
             Cancel
           </Button>
-          {isCameraActive && <video ref={videoRef} autoPlay className="w-[50px] h-[50px]"></video>}
-          <canvas ref={canvasRef} style={{ width: '50px', height: '50px' }} />
+          {isCameraActive && (
+            <video ref={videoRef} autoPlay className="w-[50px] h-[50px] hidden"></video>
+          )}
+          <canvas ref={canvasRef} style={{ width: '50px', height: '50px', display: 'none' }} />
         </DialogActions>
       </Dialog>
       <PickInstrument open={openList} close={() => setOpenList(false)} />
