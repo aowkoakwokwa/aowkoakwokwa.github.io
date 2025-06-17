@@ -8,7 +8,6 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useUserStore, useWebStore, useWebStoreInstrument } from '../../store/store';
 import LaporanNcr from '@/app/ncr/laporaNcr';
-import Cookies from 'js-cookie';
 import { useIdleTimer } from 'react-idle-timer';
 import { signOut } from 'next-auth/react';
 import {
@@ -107,7 +106,7 @@ export default function Sidebar() {
             </div>
             <List>
               <div>
-                {userLevel === 'Admin' && (
+                {userLevel === 'Admin' && userAccess !== 'Instrument' && (
                   <ListItem sx={{ p: 0 }}>
                     <ListItemButton>
                       <ListItemDecorator className={control ? 'flex justify-center' : ''}>
@@ -202,7 +201,9 @@ export default function Sidebar() {
                     </ListItem>
                   </>
                 )}
-                {(userAccess === 'NCR' || userAccess === 'Semua' || userAccess === 'Kalibrasi') && (
+                {(userAccess === 'Semua' ||
+                  userAccess === 'Kalibrasi' ||
+                  userAccess === 'Instrument') && (
                   <>
                     <ListItem sx={{ p: 0 }}>
                       <ListItemButton onClick={handleClickInstrument}>

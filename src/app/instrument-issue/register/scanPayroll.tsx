@@ -89,7 +89,6 @@ export default function ScanPayroll({
             slotProps={{ listbox: { sx: { zIndex: 1300 } } }}
           />
 
-          {/* Menampilkan nama jika terpilih */}
           <Input readOnly value={selectedEmployee?.name || ''} placeholder="Name" />
 
           <div className="flex justify-end gap-2 mt-2">

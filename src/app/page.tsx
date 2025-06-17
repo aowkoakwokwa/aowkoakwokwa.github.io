@@ -74,7 +74,9 @@ export default function Home() {
         const data: User = await userRes.json();
         setUserData(data);
 
-        if (data.user_level === 'Admin') {
+        if (data.hak_akses === 'Instrument') {
+          router.push('/instrument-issue/register');
+        } else if (data.user_level === 'Admin') {
           router.push('/dashboard');
         } else if (data.user_level === 'User' && data.hak_akses === 'NCR') {
           router.push('/ncr/entry-ncr');

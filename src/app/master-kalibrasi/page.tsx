@@ -45,7 +45,7 @@ export default function MasterKalibrasi() {
   const handleCloseInsert = () => setOpenInsert(false);
   const handleCloseEdit = () => setOpenEdit(false);
   const handleChangePage = (_event: any, newPage: SetStateAction<number>) => setPage(newPage);
-
+  console.log(selectedRows);
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => await editDeleteData(id),
     onSuccess: () => {
@@ -142,6 +142,7 @@ export default function MasterKalibrasi() {
 
   const handleDelete = (id: number) => {
     deleteMutation.mutate(id);
+    setSelectedRows([]);
   };
 
   const currentPage = 1;
@@ -522,33 +523,37 @@ export default function MasterKalibrasi() {
             </Button>
             {selectedRows.length > 0 && (
               <div className="flex gap-4">
-                <Button
-                  startDecorator={<CreateOutlined />}
-                  color="success"
-                  onClick={() => {
-                    if (selectedRows.length > 0) {
-                      const temp = filteredRows.filter((val) => val.id === tableSelect);
-                      setDataEdit(temp[0]);
-                      setOpenEdit(true);
-                    } else {
-                    }
-                  }}
-                  sx={{ paddingY: 1.2 }}
-                >
-                  Edit
-                </Button>
-                <Button
-                  startDecorator={<DeleteOutlineOutlined />}
-                  color="danger"
-                  onClick={() => {
-                    if (selectedRows.length > 0) {
-                      setOpenDialogDelete(true);
-                    }
-                  }}
-                  sx={{ paddingY: 1.2 }}
-                >
-                  Hapus
-                </Button>
+                {userLevel === 'Admin' && (
+                  <Button
+                    startDecorator={<CreateOutlined />}
+                    color="success"
+                    onClick={() => {
+                      if (selectedRows.length > 0) {
+                        const temp = filteredRows.filter((val) => val.id === tableSelect);
+                        setDataEdit(temp[0]);
+                        setOpenEdit(true);
+                      } else {
+                      }
+                    }}
+                    sx={{ paddingY: 1.2 }}
+                  >
+                    Edit
+                  </Button>
+                )}
+                {userLevel === 'Admin' && (
+                  <Button
+                    startDecorator={<DeleteOutlineOutlined />}
+                    color="danger"
+                    onClick={() => {
+                      if (selectedRows.length > 0) {
+                        setOpenDialogDelete(true);
+                      }
+                    }}
+                    sx={{ paddingY: 1.2 }}
+                  >
+                    Hapus
+                  </Button>
+                )}
                 <Dialog open={openDialogDelete} onClose={() => setOpenDialogDelete(false)}>
                   <DialogTitle>Konfirmasi</DialogTitle>
                   <DialogContent>
@@ -574,14 +579,16 @@ export default function MasterKalibrasi() {
                     </Button>
                   </DialogActions>
                 </Dialog>
-                <Button
-                  startDecorator={<CalendarMonthOutlined />}
-                  color="primary"
-                  onClick={() => setOpenDialogExtend(true)}
-                  sx={{ paddingY: 1.2 }}
-                >
-                  Perpanjang
-                </Button>
+                {userLevel === 'Admin' && (
+                  <Button
+                    startDecorator={<CalendarMonthOutlined />}
+                    color="primary"
+                    onClick={() => setOpenDialogExtend(true)}
+                    sx={{ paddingY: 1.2 }}
+                  >
+                    Perpanjang
+                  </Button>
+                )}
                 <Button
                   startDecorator={<ListAltOutlined />}
                   onClick={() => setOpenCardek(true)}
@@ -681,7 +688,7 @@ export default function MasterKalibrasi() {
         <Table aria-label="Subitem Table">
           <TableHead>
             <TableRow>
-              {userLevel === 'Admin' && <TableCell></TableCell>}
+              <TableCell></TableCell>
               <TableCell title="NCR No.">Jft No.</TableCell>
               <TableCell title="Source of NCR">Source of NCR</TableCell>
               <TableCell title="Description">Description</TableCell>
@@ -720,29 +727,27 @@ export default function MasterKalibrasi() {
 
                 return (
                   <TableRow key={val.id} className={isExpired ? 'bg-[#FFE2E2]' : ''}>
-                    {userLevel === 'Admin' && (
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedRows.includes(val.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedRows([
-                                val.id,
-                                val.no_jft,
-                                val.frequency,
-                                val.calibration_source,
-                                val.ref_criteria,
-                                val.description,
-                              ]);
-                              setTableSelect(val.id);
-                            } else {
-                              setSelectedRows([]);
-                              setTableSelect('');
-                            }
-                          }}
-                        />
-                      </TableCell>
-                    )}
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedRows.includes(val.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedRows([
+                              val.id,
+                              val.no_jft,
+                              val.frequency,
+                              val.calibration_source,
+                              val.ref_criteria,
+                              val.description,
+                            ]);
+                            setTableSelect(val.id);
+                          } else {
+                            setSelectedRows([]);
+                            setTableSelect('');
+                          }
+                        }}
+                      />
+                    </TableCell>
                     <TableCell className="overflow-hidden truncate">{val.no_jft}</TableCell>
                     <TableCell className="overflow-hidden truncate">{val.size}</TableCell>
                     <TableCell className="overflow-hidden truncate">{val.description}</TableCell>
@@ -1401,9 +1406,6 @@ const DialogTambah = ({
       masterData.refetch();
       success?.();
     },
-    onError: (err) => {
-      console.error(err);
-    },
   });
 
   useEffect(() => {
@@ -1435,6 +1437,15 @@ const DialogTambah = ({
 
   const onSubmit = async (formData: any) => {
     try {
+      const isDuplicate = masterData.data?.some(
+        (item: any) => item.no_jft?.toUpperCase().trim() === formData.no_jft?.toUpperCase().trim(),
+      );
+
+      if (isDuplicate) {
+        alert('❌ No. JFT sudah ada. Silakan gunakan nomor lain.');
+        return;
+      }
+
       let lampiranPath = '';
 
       if (selectedFile) {

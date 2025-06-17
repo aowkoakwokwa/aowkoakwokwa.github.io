@@ -245,6 +245,7 @@ const editReturnData = async (data) => {
 };
 
 const editDeleteData = async (data) => {
+  console.log(data);
   try {
     const result = await prisma.master_barang.update({
       where: {

@@ -44,6 +44,7 @@ interface ScannedStore {
   scannedData: Instrument[];
   addScannedItem: (item: Instrument) => void;
   clearScannedData: () => void;
+  removeScannedItemByIndex: (index: number) => void;
 }
 
 type StateAccount = {
@@ -216,6 +217,10 @@ const useScannedStore = create<ScannedStore>((set) => ({
   scannedData: [],
   addScannedItem: (item) => set((state) => ({ scannedData: [...state.scannedData, item] })),
   clearScannedData: () => set({ scannedData: [] }),
+  removeScannedItemByIndex: (index: number) =>
+    set((state) => ({
+      scannedData: state.scannedData.filter((_, i) => i !== index),
+    })),
 }));
 
 const useInstrumentStore = create<InstrumentStore>((set) => ({

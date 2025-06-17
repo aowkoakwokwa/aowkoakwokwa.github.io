@@ -263,18 +263,6 @@ enum ncr_master_source {
   Customer
 }
 
-enum user_hak_akses {
-  Kalibrasi
-  NCR
-  Semua
-}
-
-enum user_user_level {
-  User
-  Admin
-  Guest
-}
-
 enum kalibrasi_eksternal_status {
   Belum_Kembali @map("Belum Kembali")
   Sudah_Kembali @map("Sudah Kembali")
@@ -293,4 +281,17 @@ enum ncr_master_case {
   Accept_As_Is       @map("Accept As Is")
   Repair
   Rework
+}
+
+enum user_hak_akses {
+  Kalibrasi
+  NCR
+  Semua
+  Instrument
+}
+
+enum user_user_level {
+  User
+  Admin
+  Guest
 }

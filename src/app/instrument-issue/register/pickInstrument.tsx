@@ -5,7 +5,9 @@ import { Input, Table, Autocomplete } from '@mui/joy';
 import { Dialog, DialogContent, DialogTitle, styled, TablePagination } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useScannedStore } from '../../../../store/store';
+import { Trash2 } from 'lucide-react';
 
 interface Instrument {
   id: string | number;
@@ -29,7 +31,10 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
   const [selectedItem, setSelectedItem] = useState<Instrument | null>(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const { scannedData, addScannedItem } = useScannedStore();
+  const { scannedData, addScannedItem, removeScannedItemByIndex } = useScannedStore();
+  const [inputValue, setInputValue] = useState('');
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const recentlyScannedId = useRef<string | null>(null);
 
   const { data: masterData = [] } = useQuery({
     queryKey: ['getMaster'],
@@ -51,6 +56,14 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
 
   const handleSelect = async (item: Instrument | null) => {
     if (!item) return;
+
+    if (recentlyScannedId.current === String(item.id)) {
+      return;
+    }
+    recentlyScannedId.current = String(item.id);
+    setTimeout(() => {
+      recentlyScannedId.current = null;
+    }, 2000);
 
     if ('next_calibration' in item && item.next_calibration) {
       const today = new Date();
@@ -86,43 +99,66 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
     }
   };
 
+  useEffect(() => {
+    if (inputValue.trim() === '') return;
+
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+
+    debounceTimeout.current = setTimeout(() => {
+      const exactMatch = allData.find(
+        (item) => item.no_jft?.toUpperCase().trim() === inputValue.toUpperCase().trim(),
+      );
+      if (exactMatch) {
+        handleSelect(exactMatch);
+      }
+    }, 800);
+  }, [inputValue]);
+
   const handleClose = () => {
     setSelectedItem(null);
     close();
   };
 
+  const removeScannedItem = (index: number) => {
+    removeScannedItemByIndex(index);
+  };
+
   const paginatedData = scannedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>List Item</DialogTitle>
       <DialogContent>
         <div className="flex flex-row gap-5">
-          {/* Autocomplete Pilih JFT */}
-          <div className="w-[40%]">
-            <label>Pilih JFT No.</label>
-            <Autocomplete
-              options={allData}
-              getOptionLabel={(option) => option.no_jft ?? ''}
-              isOptionEqualToValue={(opt, val) => String(opt.id) === String(val.id)}
-              onChange={(_, value) => handleSelect(value)}
-              value={selectedItem}
-              placeholder="Search JFT No."
-              groupBy={groupByKalibrasi}
-              slotProps={{ listbox: { sx: { zIndex: 1300 } } }}
-              renderOption={(props, option) => {
-                const { ownerState, ...rest } = props as any;
-                return (
-                  <StyledOption {...rest} key={String(option.id)}>
-                    {option.no_jft}
-                  </StyledOption>
-                );
-              }}
-            />
-          </div>
-
-          <div className="w-[60%]">
+          <div className="w-full">
             <div className="flex flex-col">
+              <div className="w-full mb-4">
+                <label>Pilih JFT No.</label>
+                <Autocomplete
+                  options={allData}
+                  getOptionLabel={(option) => option.no_jft ?? ''}
+                  isOptionEqualToValue={(opt, val) => String(opt.id) === String(val.id)}
+                  onChange={(_, value) => handleSelect(value)}
+                  onInputChange={(_, value) => {
+                    setInputValue(value);
+                  }}
+                  inputValue={inputValue}
+                  value={selectedItem}
+                  placeholder="Search JFT No."
+                  groupBy={groupByKalibrasi}
+                  slotProps={{ listbox: { sx: { zIndex: 1300 } } }}
+                  renderOption={(props, option) => {
+                    const { ownerState, ...rest } = props as any;
+                    return (
+                      <StyledOption {...rest} key={String(option.id)}>
+                        {option.no_jft}
+                      </StyledOption>
+                    );
+                  }}
+                />
+              </div>
               <div className="flex flex-row gap-4">
                 <div className="mb-4 w-full">
                   <label>Serial Number</label>
@@ -149,6 +185,7 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
                 <th>Serial Number</th>
                 <th>Description</th>
                 <th>Size</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -159,6 +196,14 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
                     <td>{item.serial_number}</td>
                     <td>{item.description}</td>
                     <td>{item.size}</td>
+                    <td>
+                      <a
+                        onClick={() => removeScannedItem(i + page * rowsPerPage)}
+                        className="cursor-pointer"
+                      >
+                        <Trash2 size={20} color="#FF0000" />
+                      </a>
+                    </td>
                   </tr>
                 ))
               ) : (

@@ -24,6 +24,7 @@ import { CirclePlus, Printer, RefreshCcw, Trash2 } from 'lucide-react';
 import ManualCardek from './manualCardek';
 import CalibrationRecordPDF from './cardekPrint';
 import { pdf } from '@react-pdf/renderer';
+import { useUserStore } from '../../../store/store';
 
 interface CalibrationRecord {
   jft_no: string;
@@ -78,6 +79,7 @@ export default function Cardek({
   const acceptCriteria = dataCardeck?.[4] ?? '-';
   const desc = dataCardeck?.[5] ?? '-';
   const [printData, setPrintData] = useState<CalibrationRecord[]>([]);
+  const userLevel = useUserStore((state) => state.userLevel);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -172,7 +174,7 @@ export default function Cardek({
               <Table sx={{ minWidth: 800 }}>
                 <TableHead>
                   <TableRow>
-                    <TableCell />
+                    {userLevel === 'Admin' && <TableCell />}
                     <TableCell sx={{ fontWeight: 'bold' }}>Cal. Date</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Next Cal. Date</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>Freq.</TableCell>
@@ -189,12 +191,14 @@ export default function Cardek({
                     const nextCalDate = calculateNextCalibration(row.cal_date, calFreq);
                     return (
                       <TableRow key={index}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedItem === row.id}
-                            onChange={() => handleCheckboxChange(row.id)}
-                          />
-                        </TableCell>
+                        {userLevel === 'Admin' && (
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedItem === row.id}
+                              onChange={() => handleCheckboxChange(row.id)}
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="overflow-x-auto truncate">
                           {dayjs(row.cal_date).format('DD/MM/YYYY')}
                         </TableCell>
@@ -243,15 +247,17 @@ export default function Cardek({
           )}
         </DialogContent>
         <DialogActions>
-          <Tooltip title="Manual Add Cardek">
-            <Button
-              startDecorator={<CirclePlus />}
-              onClick={() => setOpenCardek(true)}
-              color="success"
-            >
-              Manual Cardek
-            </Button>
-          </Tooltip>
+          {userLevel === 'Admin' && (
+            <Tooltip title="Manual Add Cardek">
+              <Button
+                startDecorator={<CirclePlus />}
+                onClick={() => setOpenCardek(true)}
+                color="success"
+              >
+                Manual Cardek
+              </Button>
+            </Tooltip>
+          )}
           <Button startDecorator={<RefreshCcw />} onClick={() => refetch()}>
             Refresh
           </Button>
