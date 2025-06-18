@@ -65,7 +65,7 @@ export default function MasterKalibrasi() {
 
   const filteredRows =
     masterData.data?.filter((row: any) => {
-      if (row.delete === 1) return false;
+      if (row.deleted === 1) return false;
       const matchesSearchTerm = Object.values(row).some(
         (value: any) => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
       );
@@ -596,6 +596,15 @@ const DialogTambah = ({
 
   const onSubmit = async (formData: any) => {
     try {
+      const isDuplicate = masterData.data?.some(
+        (item: any) => item.no_jft?.toUpperCase().trim() === formData.no_jft?.toUpperCase().trim(),
+      );
+
+      if (isDuplicate) {
+        alert('❌ No. JFT sudah ada. Silakan gunakan nomor lain.');
+        return;
+      }
+
       const dataToSubmit = {
         ...formData,
         users: userData?.username,
