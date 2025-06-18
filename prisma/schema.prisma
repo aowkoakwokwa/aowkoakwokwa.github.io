@@ -108,6 +108,7 @@ model master_non_kalibrasi {
   id            Int       @id @default(autoincrement())
   create_at     DateTime  @db.DateTime(0)
   create_by     String    @db.VarChar(255)
+  deleted       Int?      @default(0)
 }
 
 model ncr_master {

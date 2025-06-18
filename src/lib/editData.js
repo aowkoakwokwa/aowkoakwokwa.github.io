@@ -245,9 +245,25 @@ const editReturnData = async (data) => {
 };
 
 const editDeleteData = async (data) => {
-  console.log(data);
   try {
     const result = await prisma.master_barang.update({
+      where: {
+        id: data,
+      },
+      data: {
+        deleted: 1,
+      },
+    });
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const editDeleteDataNonMaster = async (data) => {
+  console.log(data);
+  try {
+    const result = await prisma.master_non_kalibrasi.update({
       where: {
         id: data,
       },
@@ -268,4 +284,5 @@ export {
   editNcrData,
   editReturnData,
   editDeleteData,
+  editDeleteDataNonMaster,
 };

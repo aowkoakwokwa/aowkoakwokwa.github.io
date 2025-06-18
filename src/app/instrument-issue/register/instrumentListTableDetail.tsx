@@ -1,18 +1,18 @@
 'use client';
 
-import { getInstrumentDataDetail, getMaster } from '@/lib/getData';
+import { getInstrumentDataDetail, getMaster, getNonMaster } from '@/lib/getData';
 import { Table } from '@mui/joy';
 import { useQuery } from '@tanstack/react-query';
 import { useInstrumentStore, useCheckedInstrumentStore } from '@/../store/store';
 
 export default function InstrumentListTable() {
-  const selectedId = useInstrumentStore((state) => state.selectedId);
+  const selectedId = useInstrumentStore((state) => state.selectedItem);
   const checkedMap = useCheckedInstrumentStore((state) => state.checkedInstrumentMap);
 
   const { data = [] } = useQuery({
-    queryKey: ['getInstrumentDataDetail', selectedId],
-    queryFn: () => getInstrumentDataDetail(selectedId),
-    enabled: !!selectedId,
+    queryKey: ['getInstrumentDataDetail', selectedId?.usage_no],
+    queryFn: () => getInstrumentDataDetail(selectedId?.usage_no),
+    enabled: !!selectedId?.usage_no,
   });
 
   const { data: masterData = [] } = useQuery({
@@ -21,7 +21,13 @@ export default function InstrumentListTable() {
     refetchOnWindowFocus: false,
   });
 
-  const checkedData = checkedMap[selectedId ?? ''] || [];
+  const { data: masterNonData = [] } = useQuery({
+    queryKey: ['getNonMaster'],
+    queryFn: getNonMaster,
+    refetchOnWindowFocus: false,
+  });
+
+  const checkedData = checkedMap[selectedId?.usage_no ?? ''] || [];
 
   return (
     <div>
@@ -35,12 +41,12 @@ export default function InstrumentListTable() {
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => {
+          {data.map((item) => {
             const isReturned = item.kembali === 'Ya';
-            console.log(isReturned);
-            console.log(data);
-            const master = masterData.find((m) => m.no_jft === item.jft_no);
-            const isDeleted = master?.deleted === 1;
+            const isDeletedMaster = masterData.find((m) => m.no_jft === item.jft_no)?.deleted === 1;
+            const isDeletedNonMaster =
+              masterNonData.find((nm) => nm.no_jft === item.jft_no)?.deleted === 1;
+            const isDeleted = isDeletedMaster || isDeletedNonMaster;
 
             const textClass = [
               isReturned ? 'text-gray-400 italic' : '',

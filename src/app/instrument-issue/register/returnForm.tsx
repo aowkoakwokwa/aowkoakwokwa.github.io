@@ -21,7 +21,7 @@ export default function ReturnForm({
   close: () => void;
   onSuccess: () => void;
 }) {
-  const { selectedId, setSelectedId } = useInstrumentStore();
+  const { selectedItem, setSelectedItem, resetSelectedItem } = useInstrumentStore();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
@@ -118,11 +118,11 @@ export default function ReturnForm({
     refetchOnWindowFocus: false,
   });
 
-  const selectedInstrument = data.find((item: any) => item.usage_no === selectedId);
-
+  const selectedInstrument = data.find((item: any) => item.usage_no === selectedItem?.usage_no);
   const form = useForm({
     defaultValues: {
       usage_no: selectedInstrument?.usage_no || '',
+      est_return_date: selectedInstrument?.est_return_date || '',
       wo_refer_to: selectedInstrument?.wo_refer_to || '',
       location: selectedInstrument?.location || '',
       tgl_kembali: selectedInstrument?.tgl_kembali || '',
@@ -141,6 +141,7 @@ export default function ReturnForm({
     if (selectedInstrument) {
       form.reset({
         usage_no: selectedInstrument.usage_no ?? '',
+        est_return_date: selectedInstrument.est_return_date ?? '',
         wo_refer_to: selectedInstrument.wo_refer_to ?? '',
         location: selectedInstrument.location ?? '',
         tgl_kembali: selectedInstrument.tgl_kembali ?? '',
@@ -163,13 +164,26 @@ export default function ReturnForm({
       }
     }
 
-    setSelectedId(null);
+    resetSelectedItem();
     sessionStorage.removeItem('payroll_id');
     sessionStorage.removeItem('payroll_name');
     sessionStorage.removeItem('departement');
     localStorage.removeItem('payroll-storage');
     close();
   };
+
+  function formatToDateTimeLocal(value: string | Date): string {
+    const date = new Date(value);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
 
   const mutation = useMutation({
     mutationFn: async (formData: any) => {
@@ -185,7 +199,7 @@ export default function ReturnForm({
       }
       onSuccess();
       handleClose();
-      setSelectedId(null);
+      resetSelectedItem();
     },
     onError: (error: any) => {
       alert('Gagal menyimpan data: ' + error.message);
@@ -272,9 +286,9 @@ export default function ReturnForm({
               </div>
             </div>
             <div className="mx-6">
-              <div className="flex gap-8">
+              <div className="flex gap-6">
                 <label className="block font-medium mb-1 w-full">Issued Date</label>
-                <label className="block font-medium mb-1 w-full">Return Date</label>
+                <label className="block font-medium mb-1 w-full">Est Return Date</label>
               </div>
               <div className="mb-4 flex gap-4">
                 <Controller
@@ -293,17 +307,39 @@ export default function ReturnForm({
                 />
                 <Controller
                   control={form.control}
-                  name="tgl_kembali"
+                  name="est_return_date"
                   render={({ field }) => (
                     <Input
-                      type="datetime-local"
-                      {...field}
+                      required
+                      value={
+                        typeof field.value === 'string'
+                          ? formatToDateTimeLocal(field.value)
+                          : field.value instanceof Date
+                            ? formatToDateTimeLocal(field.value)
+                            : ''
+                      }
+                      onChange={field.onChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
-                      value={field.value || ''}
-                      readOnly // optional, jika ingin mencegah user ubah manual
+                      placeholder="Type something.."
+                      readOnly
                     />
                   )}
                 />
+                <div className="hidden">
+                  <Controller
+                    control={form.control}
+                    name="tgl_kembali"
+                    render={({ field }) => (
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
+                        value={field.value || ''}
+                        readOnly
+                      />
+                    )}
+                  />
+                </div>
               </div>
               <div className="mb-4">
                 <label className="block font-medium mb-1">Ref. WO/Special Note</label>

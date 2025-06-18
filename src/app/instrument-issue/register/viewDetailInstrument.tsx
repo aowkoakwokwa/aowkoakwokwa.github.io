@@ -20,7 +20,7 @@ export default function ViewDetailInstrument({
   open: boolean;
   close: () => void;
 }) {
-  const { selectedId, setSelectedId } = useInstrumentStore();
+  const { selectedItem, setSelectedItem, resetSelectedItem } = useInstrumentStore();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
@@ -98,7 +98,7 @@ export default function ViewDetailInstrument({
     refetchOnWindowFocus: false,
   });
 
-  const selectedInstrument = data.find((item: any) => item.usage_no === selectedId);
+  const selectedInstrument = data.find((item: any) => item.usage_no === selectedItem?.usage_no);
 
   const form = useForm({
     defaultValues: {
@@ -145,7 +145,7 @@ export default function ViewDetailInstrument({
       }
     }
 
-    setSelectedId(null);
+    resetSelectedItem();
     sessionStorage.removeItem('payroll_id');
     sessionStorage.removeItem('payroll_name');
     sessionStorage.removeItem('departement');

@@ -18,7 +18,7 @@ export default function Page() {
   const [refetch, setRefetch] = useState(false);
   const [openReturn, setOpenReturn] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const { selectedId, resetSelectedId } = useInstrumentStore();
+  const { selectedItem, setSelectedItem, resetSelectedItem } = useInstrumentStore();
   const userLevel = useUserStore((state) => state.userLevel);
   const userHakAkses = useUserStore((state) => state.userHakAkses);
   const { openPayroll, setOpenPayroll, fromReturnForm, setFromReturnForm } = usePayrollStore();
@@ -43,10 +43,10 @@ export default function Page() {
   }, []);
 
   const handleDeleteInstrument = () => {
-    if (selectedId) {
-      deleteInstrumentData(selectedId);
+    if (selectedItem?.usage_no) {
+      deleteInstrumentData(selectedItem?.usage_no);
       setRefetch((prev) => !prev);
-      resetSelectedId();
+      resetSelectedItem();
     }
     setOpenDeleteDialog(false);
   };
@@ -63,17 +63,21 @@ export default function Page() {
           color="success"
           sx={{ paddingY: 1.2 }}
           disabled={
-            selectedId != null ||
+            selectedItem.usage_no != null ||
             userLevel !== 'Admin' ||
-            (userLevel === 'Admin' && userHakAkses !== 'Instrument')
+            (userHakAkses?.trim() !== 'Instrument' && userHakAkses?.trim() !== 'Semua')
           }
         >
           Tambah
         </Button>
 
-        {selectedId != null && (
+        {selectedItem.usage_no != null && (
           <>
-            {!(userLevel === 'Admin' && userHakAkses !== 'Instrument') && (
+            {!(
+              userLevel === 'Admin' &&
+              userHakAkses !== 'Instrument' &&
+              userHakAkses !== 'Semua'
+            ) && (
               <>
                 <Button
                   startDecorator={<Trash2 />}
@@ -84,17 +88,19 @@ export default function Page() {
                   Hapus
                 </Button>
 
-                <Button
-                  startDecorator={<Undo2 />}
-                  onClick={() => {
-                    setOpenPayroll(true);
-                    setFromReturnForm(true);
-                  }}
-                  color="danger"
-                  sx={{ paddingY: 1.2 }}
-                >
-                  Return
-                </Button>
+                {selectedItem.status !== 'Sudah_Kembali' && (
+                  <Button
+                    startDecorator={<Undo2 />}
+                    onClick={() => {
+                      setOpenPayroll(true);
+                      setFromReturnForm(true);
+                    }}
+                    color="danger"
+                    sx={{ paddingY: 1.2 }}
+                  >
+                    Return
+                  </Button>
+                )}
               </>
             )}
             <Button

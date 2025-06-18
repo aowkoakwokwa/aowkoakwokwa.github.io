@@ -19,7 +19,7 @@ interface DecodedToken {
   username: string;
 }
 export default function InstrumentTable({ reload }: any) {
-  const { selectedId, setSelectedId } = useInstrumentStore();
+  const { selectedItem, setSelectedItem, resetSelectedItem } = useInstrumentStore();
   const [filterStatus, setFilterStatus] = useState<'inuse' | 'period'>('inuse');
   const [monthFilter, setMonthFilter] = useState('');
   const userLevel = useUserStore((state) => state.userLevel);
@@ -149,10 +149,15 @@ export default function InstrumentTable({ reload }: any) {
                   {userLevel === 'Admin' && (
                     <td>
                       <Checkbox
-                        checked={selectedId === item.usage_no}
-                        onChange={() =>
-                          setSelectedId(selectedId === item.usage_no ? null : item.usage_no)
-                        }
+                        checked={selectedItem?.usage_no === item.usage_no}
+                        onChange={() => {
+                          if (selectedItem.usage_no === item.usage_no) {
+                            setSelectedItem({ usage_no: null, status: null }); // Deselect
+                            resetSelectedItem();
+                          } else {
+                            setSelectedItem({ usage_no: item.usage_no, status: item.status }); // Select item
+                          }
+                        }}
                       />
                     </td>
                   )}

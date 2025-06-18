@@ -9,11 +9,15 @@ interface Instrument {
   serial_number: string | null;
 }
 
-interface InstrumentStore {
-  selectedId: string | null;
-  setSelectedId: (id: string | null) => void;
-  resetSelectedId: () => void;
-}
+type SelectedItem = {
+  usage_no: string | null;
+  status: string | null;
+};
+type InstrumentStore = {
+  selectedItem: SelectedItem;
+  setSelectedItem: (item: SelectedItem) => void;
+  resetSelectedItem: () => void;
+};
 
 interface PageState {
   currentPage: string;
@@ -224,9 +228,9 @@ const useScannedStore = create<ScannedStore>((set) => ({
 }));
 
 const useInstrumentStore = create<InstrumentStore>((set) => ({
-  selectedId: null,
-  setSelectedId: (id) => set({ selectedId: id }),
-  resetSelectedId: () => set({ selectedId: null }), // ✅ fungsi reset
+  selectedItem: { usage_no: null, status: null },
+  setSelectedItem: (item) => set({ selectedItem: item }),
+  resetSelectedItem: () => set({ selectedItem: { usage_no: null, status: null } }),
 }));
 
 const useCheckedInstrumentStore = create<CheckedInstrumentStore>((set) => ({

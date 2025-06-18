@@ -17,6 +17,7 @@ import { insertDataNonMaster } from '@/lib/insertData';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useUserStore } from '../../../store/store';
+import { editDeleteDataNonMaster } from '@/lib/editData';
 
 export default function MasterKalibrasi() {
   dayjs.extend(customParseFormat);
@@ -32,6 +33,18 @@ export default function MasterKalibrasi() {
   const handleCloseInsert = () => setOpenInsert(false);
 
   const handleChangePage = (_event: any, newPage: SetStateAction<number>) => setPage(newPage);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => await editDeleteDataNonMaster(id),
+    onSuccess: () => {
+      setSelectedRows((prev) => prev.filter((id) => id !== selectedRows?.[0]));
+      setOpenDialogDelete(false);
+      masterData.refetch();
+    },
+    onError: (error) => {
+      console.error('Gagal menghapus data:', error);
+    },
+  });
 
   const handleChangeRowsPerPage = (event: { target: { value: string } }) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -52,6 +65,7 @@ export default function MasterKalibrasi() {
 
   const filteredRows =
     masterData.data?.filter((row: any) => {
+      if (row.delete === 1) return false;
       const matchesSearchTerm = Object.values(row).some(
         (value: any) => value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
       );
@@ -68,8 +82,8 @@ export default function MasterKalibrasi() {
   if (masterData.isLoading) return <LoadData />;
 
   const handleDelete = (id: number) => {
-    deleteNonMaster(id);
-    masterData.refetch();
+    deleteMutation.mutate(id);
+    setSelectedRows([]);
   };
 
   const currentPage = 1;
@@ -371,22 +385,7 @@ export default function MasterKalibrasi() {
                           return;
                         }
 
-                        const selectedData = filteredRows.find(
-                          (row: any) => row.id === selectedRows[0],
-                        );
-
-                        if (!selectedData) {
-                          console.error('Data tidak ditemukan!');
-                          return;
-                        }
-
-                        try {
-                          await handleDelete(selectedData.id);
-                          setSelectedRows((prev) => prev.filter((id) => id !== selectedData.id));
-                          setOpenDialogDelete(false);
-                        } catch (error) {
-                          console.error('Terjadi kesalahan:', error);
-                        }
+                        handleDelete(Number(selectedRows[0]));
                       }}
                       color="primary"
                     >

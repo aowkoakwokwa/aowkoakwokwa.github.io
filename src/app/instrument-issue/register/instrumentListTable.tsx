@@ -1,13 +1,13 @@
 'use client';
 
-import { getInstrumentDataDetail, getMaster } from '@/lib/getData';
+import { getInstrumentDataDetail, getMaster, getNonMaster } from '@/lib/getData';
 import { Checkbox, Table } from '@mui/joy';
 import { useQuery } from '@tanstack/react-query';
 import { useInstrumentStore, useCheckedInstrumentStore } from '@/../store/store';
 import { useEffect } from 'react';
 
 export default function InstrumentListTable() {
-  const selectedId = useInstrumentStore((state) => state.selectedId);
+  const selectedId = useInstrumentStore((state) => state.selectedItem);
   const checkedMap = useCheckedInstrumentStore((state) => state.checkedInstrumentMap);
   const setCheckedData = useCheckedInstrumentStore((state) => state.setCheckedInstrumentList);
   const updateCheckedInstrument = useCheckedInstrumentStore(
@@ -15,9 +15,9 @@ export default function InstrumentListTable() {
   );
 
   const { data = [] } = useQuery({
-    queryKey: ['getInstrumentDataDetail', selectedId],
-    queryFn: () => getInstrumentDataDetail(selectedId),
-    enabled: !!selectedId,
+    queryKey: ['getInstrumentDataDetail', selectedId?.usage_no],
+    queryFn: () => getInstrumentDataDetail(selectedId?.usage_no),
+    enabled: !!selectedId?.usage_no,
   });
 
   const { data: masterData = [] } = useQuery({
@@ -26,7 +26,13 @@ export default function InstrumentListTable() {
     refetchOnWindowFocus: false,
   });
 
-  const checkedData = checkedMap[selectedId ?? ''] || [];
+  const { data: masterNonData = [] } = useQuery({
+    queryKey: ['getNonMaster'],
+    queryFn: getNonMaster,
+    refetchOnWindowFocus: false,
+  });
+
+  const checkedData = checkedMap[selectedId?.usage_no ?? ''] || [];
 
   useEffect(() => {
     if (!selectedId) return;
@@ -39,14 +45,14 @@ export default function InstrumentListTable() {
 
     const isEqual = JSON.stringify(initialState) === JSON.stringify(checkedData);
     if (!isEqual) {
-      setCheckedData(selectedId, initialState);
+      setCheckedData(String(selectedId?.usage_no), initialState);
     }
   }, [data, selectedId]);
 
   const handleCheckboxChange = (index: number, field: 'return' | 'good' | 'nc') => {
     if (selectedId) {
       const currentValue = checkedData[index]?.[field] || false;
-      updateCheckedInstrument(selectedId, index, field, !currentValue);
+      updateCheckedInstrument(String(selectedId?.usage_no), index, field, !currentValue);
     }
   };
 
@@ -66,10 +72,11 @@ export default function InstrumentListTable() {
         </thead>
         <tbody>
           {data.map((item, index) => {
-            const isReturned = checkedData[index]?.return;
-            const master = masterData.find((m) => m.no_jft === item.jft_no);
-
-            const isDeleted = master?.deleted === 1;
+            const isReturned = item.kembali === 'Ya';
+            const isDeletedMaster = masterData.find((m) => m.no_jft === item.jft_no)?.deleted === 1;
+            const isDeletedNonMaster =
+              masterNonData.find((nm) => nm.no_jft === item.jft_no)?.deleted === 1;
+            const isDeleted = isDeletedMaster || isDeletedNonMaster;
 
             const textClass = [
               isReturned ? 'text-gray-400 italic' : '',
