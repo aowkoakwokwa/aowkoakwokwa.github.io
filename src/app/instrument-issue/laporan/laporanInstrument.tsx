@@ -159,10 +159,10 @@ export default function LaporanInstrument({ open, close }: { open: boolean; clos
         return;
       }
     } else if (selectedUsageOption === 'usage') {
-      if (!selectedOperator) {
+      if (selectedUsageDetail === 'operator' && !selectedOperator) {
         alert('Operator harus diisi');
         return;
-      } else if (!workOrder) {
+      } else if (selectedUsageDetail === 'workorder' && !workOrder) {
         alert('Work Order harus diisi');
         return;
       }
@@ -279,7 +279,16 @@ export default function LaporanInstrument({ open, close }: { open: boolean; clos
   };
 
   return (
-    <Dialog open={open} onClose={close} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') {
+          close();
+        }
+      }}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>Laporan Peminjaman Tool</DialogTitle>
       <DialogContent>
         <div className="flex items-center mb-2 gap-4 justify-between">
@@ -608,6 +617,9 @@ export default function LaporanInstrument({ open, close }: { open: boolean; clos
       <DialogActions>
         <Button startDecorator={<Printer />} type="submit" color="success" onClick={handlePrint}>
           Print
+        </Button>
+        <Button color="danger" onClick={close}>
+          Cancel
         </Button>
       </DialogActions>
     </Dialog>

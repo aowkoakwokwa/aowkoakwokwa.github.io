@@ -222,13 +222,22 @@ export default function ReturnForm({
     };
 
     updateTime();
-    const interval = setInterval(updateTime, 1000); // update tiap detik
+    const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, [open]);
 
   return (
     <>
-      <Dialog open={open} onClose={close} maxWidth="xl" fullWidth>
+      <Dialog
+        open={open}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            close();
+          }
+        }}
+        maxWidth="xl"
+        fullWidth
+      >
         <DialogTitle>Tool Returning Form</DialogTitle>
         <DialogContent sx={{ overflow: 'hidden' }}>
           <div className="grid grid-cols-3 gap4 overflow-x-hidden">

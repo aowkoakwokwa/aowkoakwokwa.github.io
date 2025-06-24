@@ -108,16 +108,16 @@ export default function Sidebar() {
               <div>
                 {userLevel === 'Admin' && userAccess !== 'Instrument' && (
                   <ListItem sx={{ p: 0 }}>
-                    <ListItemButton>
-                      <ListItemDecorator className={control ? 'flex justify-center' : ''}>
-                        <LayoutDashboard color="#f75252" />
-                      </ListItemDecorator>
-                      {!control && (
-                        <ListItemContent className="font-medium">
-                          <Link href="/dashboard">Dashboard</Link>
-                        </ListItemContent>
-                      )}
-                    </ListItemButton>
+                    <Link href="/dashboard" passHref legacyBehavior>
+                      <ListItemButton>
+                        <ListItemDecorator className={control ? 'flex justify-center' : ''}>
+                          <LayoutDashboard color="#f75252" />
+                        </ListItemDecorator>
+                        {!control && (
+                          <ListItemContent className="font-medium">Dashboard</ListItemContent>
+                        )}
+                      </ListItemButton>
+                    </Link>
                   </ListItem>
                 )}
                 {(userAccess === 'NCR' || userAccess === 'Semua') && (
@@ -148,11 +148,14 @@ export default function Sidebar() {
                       {open && (
                         <List component="div" sx={{ p: 0 }}>
                           <ListItem sx={{ px: 0 }}>
-                            <ListItemButton selected={pathname === '/ncr/entry-ncr'}>
-                              <ListItemContent className="px-8">
-                                <Link href="/ncr/entry-ncr">Entry NCR</Link>
-                              </ListItemContent>
-                            </ListItemButton>
+                            <Link href="/ncr/entry-ncr" passHref legacyBehavior>
+                              <ListItemButton
+                                component="a"
+                                selected={pathname === '/ncr/entry-ncr'}
+                              >
+                                <ListItemContent className="px-8">Entry NCR</ListItemContent>
+                              </ListItemButton>
+                            </Link>
                           </ListItem>
                           <ListItem sx={{ px: 0 }}>
                             <ListItemButton selected={pathname === '/ncr/laporan-ncr'}>
@@ -172,32 +175,36 @@ export default function Sidebar() {
                 {(userAccess === 'Kalibrasi' || userAccess === 'Semua') && (
                   <>
                     <ListItem sx={{ p: 0 }}>
-                      <ListItemButton>
-                        <ListItemDecorator className={control ? 'flex justify-center' : ''}>
-                          <FlaskConical color="#f75252" />
-                        </ListItemDecorator>
-                        {!control && (
-                          <ListItemContent className="font-medium">
-                            <Link href="/master-kalibrasi">Master Kalibrasi</Link>
-                          </ListItemContent>
-                        )}
-                      </ListItemButton>
+                      <Link href="/master-kalibrasi" passHref legacyBehavior>
+                        <ListItemButton>
+                          <ListItemDecorator className={control ? 'flex justify-center' : ''}>
+                            <FlaskConical color="#f75252" />
+                          </ListItemDecorator>
+                          {!control && (
+                            <ListItemContent className="font-medium">
+                              Master Kalibrasi
+                            </ListItemContent>
+                          )}
+                        </ListItemButton>
+                      </Link>
                     </ListItem>
                   </>
                 )}
                 {(userAccess === 'Kalibrasi' || userAccess === 'Semua') && (
                   <>
                     <ListItem sx={{ p: 0 }}>
-                      <ListItemButton>
-                        <ListItemDecorator className={control ? 'flex justify-center' : ''}>
-                          <FlaskConicalOff color="#f75252" />
-                        </ListItemDecorator>
-                        {!control && (
-                          <ListItemContent className="font-medium">
-                            <Link href="/master-non-kalibrasi">Master Non Kalibrasi</Link>
-                          </ListItemContent>
-                        )}
-                      </ListItemButton>
+                      <Link href="/master-non-kalibrasi" passHref legacyBehavior>
+                        <ListItemButton>
+                          <ListItemDecorator className={control ? 'flex justify-center' : ''}>
+                            <FlaskConicalOff color="#f75252" />
+                          </ListItemDecorator>
+                          {!control && (
+                            <ListItemContent className="font-medium">
+                              Master Non Kalibrasi
+                            </ListItemContent>
+                          )}
+                        </ListItemButton>
+                      </Link>
                     </ListItem>
                   </>
                 )}
@@ -240,11 +247,14 @@ export default function Sidebar() {
                       {openInstrument && (
                         <List component="div" sx={{ p: 0 }}>
                           <ListItem sx={{ px: 0 }}>
-                            <ListItemButton selected={pathname === '/instrument-issue/register'}>
-                              <ListItemContent className="px-8">
-                                <Link href="/instrument-issue/register">Register</Link>
-                              </ListItemContent>
-                            </ListItemButton>
+                            <Link href="/instrument-issue/register" passHref legacyBehavior>
+                              <ListItemButton
+                                component="a"
+                                selected={pathname === '/instrument-issue/register'}
+                              >
+                                <ListItemContent className="w-full px-8">Register</ListItemContent>
+                              </ListItemButton>
+                            </Link>
                           </ListItem>
                           <ListItem sx={{ px: 0 }}>
                             <ListItemButton selected={pathname === '/instrument-issue/laporan'}>

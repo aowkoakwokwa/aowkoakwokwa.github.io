@@ -45,7 +45,6 @@ export default function MasterKalibrasi() {
   const handleCloseInsert = () => setOpenInsert(false);
   const handleCloseEdit = () => setOpenEdit(false);
   const handleChangePage = (_event: any, newPage: SetStateAction<number>) => setPage(newPage);
-  console.log(selectedRows);
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => await editDeleteData(id),
     onSuccess: () => {
@@ -75,8 +74,13 @@ export default function MasterKalibrasi() {
   });
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+    if (anchorEl) {
+      setAnchorEl(null);
+    } else {
+      setAnchorEl(event.currentTarget);
+    }
   };
+
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
@@ -98,10 +102,11 @@ export default function MasterKalibrasi() {
               ? isUpdated
               : row.status.toLowerCase().includes(filterStatus.toLowerCase());
 
-        const matchesSearchTerm = Object.values(row).some(
-          (value: any) =>
-            value && value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
-        );
+        // Ubah bagian ini agar hanya memfilter berdasarkan no_jft
+        const matchesSearchTerm = row.no_jft
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
         const matchesSourceFilter = sourceFilter
           ? row.calibration_source.toLowerCase().includes(sourceFilter.toLowerCase())
@@ -554,7 +559,14 @@ export default function MasterKalibrasi() {
                     Hapus
                   </Button>
                 )}
-                <Dialog open={openDialogDelete} onClose={() => setOpenDialogDelete(false)}>
+                <Dialog
+                  open={openDialogDelete}
+                  onClose={(_, reason) => {
+                    if (reason !== 'backdropClick') {
+                      setOpenDialogDelete(false);
+                    }
+                  }}
+                >
                   <DialogTitle>Konfirmasi</DialogTitle>
                   <DialogContent>
                     <p>Anda yakin ingin menghapus data??</p>
@@ -625,7 +637,7 @@ export default function MasterKalibrasi() {
               >
                 <Option value="semua">Semua</Option>
                 <Option value="internal">Internal</Option>
-                <Option value="external">External</Option>
+                <Option value="eksternal">Eksternal</Option>
               </Select>
             </div>
             <Button onClick={handleOpenMenu} disabled={selectedRows.length === 0}>
@@ -812,7 +824,14 @@ export default function MasterKalibrasi() {
           masterData={masterData}
           success={() => setSelectedRows([])}
         />
-        <Dialog open={openDialogExtend} onClose={() => setOpenDialogExtend(false)}>
+        <Dialog
+          open={openDialogExtend}
+          onClose={(_, reason) => {
+            if (reason !== 'backdropClick') {
+              setOpenDialogExtend(false);
+            }
+          }}
+        >
           <DialogTitle>Konfirmasi</DialogTitle>
           <DialogContent>
             <p>Anda ingin memprepanjang priode kalibrasi??</p>
@@ -932,6 +951,12 @@ const DialogPerpanjang = ({
 
   const onSubmit = async (formData: any) => {
     try {
+      // PDFF
+      if (!selectedFile) {
+        alert('Lampiran tidak boleh kosong!');
+        return;
+      }
+
       const checkResponse = await fetch('/api/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1010,7 +1035,16 @@ const DialogPerpanjang = ({
           </Alert>
         </Snackbar>
       </motion.div>
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+      <Dialog
+        open={open}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            handleClose();
+          }
+        }}
+        maxWidth="md"
+        fullWidth
+      >
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <DialogTitle>Form Perpanjangan Kalibrasi</DialogTitle>
           <DialogContent className="space-y-4" sx={{ pb: 0 }}>
@@ -1489,7 +1523,16 @@ const DialogTambah = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xl" fullWidth>
+    <Dialog
+      open={open}
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }}
+      maxWidth="xl"
+      fullWidth
+    >
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <DialogTitle>Form Entry Master Calibration</DialogTitle>
         <DialogContent className="space-y-4">
@@ -1655,7 +1698,7 @@ const DialogTambah = ({
                         className="w-1/2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none"
                         placeholder="Enter frequency.."
                         onChange={(e) => {
-                          const value = e.target.value;
+                          const value = e.target.value.slice(0, 4);
                           field.onChange(value);
                         }}
                         value={field.value || ''}
@@ -1952,7 +1995,16 @@ const DialogEdit = ({
         </Snackbar>
       </motion.div>
 
-      <Dialog open={open} onClose={handleClose} maxWidth="xl" fullWidth>
+      <Dialog
+        open={open}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            handleClose();
+          }
+        }}
+        maxWidth="xl"
+        fullWidth
+      >
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <DialogTitle>Form Entry Master Calibration</DialogTitle>
           <DialogContent className="space-y-4">

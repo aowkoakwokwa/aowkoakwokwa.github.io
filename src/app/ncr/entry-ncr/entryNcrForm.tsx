@@ -21,9 +21,51 @@ interface EntryNcrFormProps {
   isEdit: boolean;
 }
 
+type FormValues = {
+  ncr_no: string;
+  source: string;
+  item: string;
+  description: string;
+  po_no: string;
+  wo_no: string;
+  batch_qty: number;
+  case: string;
+  pcs: number;
+  kg: number;
+  issued_date: Date;
+  completion_date: Date | null;
+  verified_date: Date | null;
+  fault: string;
+  departement: string;
+  cv: string;
+  remarks: string;
+  lampiran: string;
+};
+
 export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormProps) {
   const queryClient = useQueryClient();
-  const form = useForm();
+  const form = useForm<FormValues>({
+    defaultValues: {
+      ncr_no: '',
+      source: '',
+      item: '',
+      description: '',
+      po_no: '',
+      wo_no: '',
+      batch_qty: 0,
+      case: 'Dash',
+      pcs: 0,
+      kg: 0,
+      issued_date: new Date(),
+      completion_date: null,
+      verified_date: null,
+      fault: '',
+      departement: '',
+      cv: '',
+      remarks: '',
+      lampiran: '',
+    },
+  });
   const watchSource = form.watch('source');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,7 +91,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
     po_no: '',
     wo_no: '',
     batch_qty: 0,
-    case: '',
+    case: 'Dash',
     pcs: 0,
     kg: 0,
     issued_date: new Date(),
@@ -132,9 +174,27 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
     }
 
     if (data) {
-      Object.entries(data).forEach(([key, value]) => {
-        form.setValue(key, value || '');
-      });
+      form.setValue('ncr_no', data.ncr_no ?? '');
+      form.setValue('source', data.source ?? '');
+      form.setValue('item', data.item ?? '');
+      form.setValue('description', data.description ?? '');
+      form.setValue('po_no', data.po_no ?? '');
+      form.setValue('wo_no', data.wo_no ?? '');
+      form.setValue('batch_qty', data.batch_qty ?? 0);
+      form.setValue('case', data.case ?? '-');
+      form.setValue('pcs', data.pcs ?? 0);
+      form.setValue('kg', data.kg ?? 0);
+      form.setValue('issued_date', data.issued_date ? new Date(data.issued_date) : new Date());
+      form.setValue(
+        'completion_date',
+        data.completion_date ? new Date(data.completion_date) : null,
+      );
+      form.setValue('verified_date', data.verified_date ? new Date(data.verified_date) : null);
+      form.setValue('fault', data.fault ?? '');
+      form.setValue('departement', data.departement ?? '');
+      form.setValue('cv', data.cv ?? '');
+      form.setValue('remarks', data.remarks ?? '');
+      form.setValue('lampiran', data.lampiran ?? '');
 
       setCv(data.cv === 'Yes' ? 'Yes' : 'No');
     }
@@ -146,7 +206,15 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
 
   return (
     <>
-      <Dialog open={open} maxWidth="xl" onClose={close}>
+      <Dialog
+        open={open}
+        maxWidth="xl"
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            close();
+          }
+        }}
+      >
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <DialogTitle>Form Entry NCR</DialogTitle>
           <DialogContent className="space-y-4">
@@ -325,18 +393,22 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
                   <Controller
                     name="case"
                     control={form.control}
-                    defaultValue=""
+                    defaultValue="-"
                     render={({ field }) => (
-                      <Tooltip title={!field.value ? 'Field is required' : ''} arrow>
+                      <Tooltip
+                        title={!field.value || field.value === '-' ? 'Field is required' : ''}
+                        arrow
+                      >
                         <Select
                           className="w-full"
                           placeholder="Choose one.."
                           slotProps={{ listbox: { sx: { zIndex: 1300 } } }}
                           sx={{ py: 1 }}
                           required
-                          value={field.value || ''}
+                          value={field.value}
                           onChange={(_, value) => field.onChange(value)}
                         >
+                          <Option value="Dash">-</Option>
                           <Option value="Return_To_Supplier">Return To Supplier</Option>
                           <Option value="Repair">Repair</Option>
                           <Option value="Rework">Rework</Option>

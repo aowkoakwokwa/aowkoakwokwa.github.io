@@ -188,7 +188,16 @@ export default function ViewDetailInstrument({
 
   return (
     <>
-      <Dialog open={open} onClose={close} maxWidth="lg" fullWidth>
+      <Dialog
+        open={open}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            close();
+          }
+        }}
+        maxWidth="lg"
+        fullWidth
+      >
         <DialogTitle>Tool Returning Form</DialogTitle>
         <DialogContent sx={{ overflow: 'hidden' }}>
           <div className="grid grid-cols-2 gap4 overflow-x-hidden">

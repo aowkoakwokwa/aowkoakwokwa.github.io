@@ -164,7 +164,14 @@ export default function Page() {
         />
       )}
 
-      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+      <Dialog
+        open={openDeleteDialog}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            setOpenDeleteDialog(false);
+          }
+        }}
+      >
         <DialogTitle>Hapus Data</DialogTitle>
         <DialogContent>
           <p>Apakah anda yakin ingin menghapus data ini?</p>

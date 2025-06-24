@@ -3,6 +3,7 @@ import { Table, Checkbox, Select, Option } from '@mui/joy';
 import { useCheckedStore, useUserStore } from '../../../../store/store';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import React from 'react';
 
 interface EntryNcrFormProps {
   ncr_no: string;
@@ -34,6 +35,7 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
   const { checkedRows, toggleCheck } = useCheckedStore();
   const [showNoData, setShowNoData] = useState(false);
   const userLevel = useUserStore((state) => state.userLevel);
+  const [checked, setChecked] = React.useState(false);
 
   const formatDate = (date: string | Date) => {
     if (!date || date === '-') return '-';
@@ -48,9 +50,11 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
     return new Date(date).toLocaleDateString();
   };
 
-  const filteredData = data.filter(
-    (entry) => selectedDept === 'Semua' || entry.departement === selectedDept,
-  );
+  const filteredData = data.filter((entry) => {
+    const byDept = selectedDept === 'Semua' || entry.departement === selectedDept;
+    const byDisposition = !checked || entry.case === 'Dash';
+    return byDept && byDisposition;
+  });
 
   useEffect(() => {
     if (filteredData.length === 0) {
@@ -72,16 +76,43 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
     setPage(0);
   };
 
+  const mapCaseEnumToLabel = (value: string): string => {
+    switch (value) {
+      case 'Dash':
+        return '-';
+      case 'Return_To_Supplier':
+        return 'Return To Supplier';
+      case 'Repair_Rework':
+        return 'Repair/Rework';
+      case 'Re_grade':
+        return 'Re-grade';
+      case 'Accept_As_Is':
+        return 'Accept As Is';
+      default:
+        return value;
+    }
+  };
+
   return (
     <>
-      <div className="w-full flex gap-2 items-center py-4 border-b-2 border-gray-200">
-        <span className="text-black">NCR Source Dept</span>
-        <Select value={selectedDept} onChange={(_, value) => setSelectedDept(value ?? 'Semua')}>
-          <Option value="Semua">Semua</Option>
-          <Option value="CNC">CNC</Option>
-          <Option value="Assembly">Assembly</Option>
-          <Option value="SCP">SCP</Option>
-        </Select>
+      <div className="flex w-full justify-between items-center border-b-2 border-gray-200">
+        <div className="flex gap-2 py-4  items-center">
+          <span className="text-black">NCR Source Dept</span>
+          <Select value={selectedDept} onChange={(_, value) => setSelectedDept(value ?? 'Semua')}>
+            <Option value="Semua">Semua</Option>
+            <Option value="CNC">CNC</Option>
+            <Option value="Assembly">Assembly</Option>
+            <Option value="SCP">SCP</Option>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            color="primary"
+            label="Disposition"
+            checked={checked}
+            onChange={(event) => setChecked(event.target.checked)}
+          />
+        </div>
       </div>
 
       <Table aria-label="Entry NCR Table">
@@ -154,7 +185,7 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
                   entry.po_no,
                   entry.wo_no,
                   entry.batch_qty,
-                  entry.case,
+                  mapCaseEnumToLabel(entry.case),
                   entry.pcs,
                   entry.kg,
                   formatDate(entry.issued_date),

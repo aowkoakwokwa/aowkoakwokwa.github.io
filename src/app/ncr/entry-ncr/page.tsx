@@ -10,12 +10,14 @@ import { useCheckedStore, useUserStore } from '../../../../store/store';
 import EntryNCRForm from './entryNcrForm';
 import { Trash2 } from 'lucide-react';
 import { deleteNcr } from '@/lib/deleteData';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 
 export default function EntryNCR() {
   const { checkedRows, toggleCheck } = useCheckedStore();
   const [openForm, setOpenForm] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const userLevel = useUserStore((state) => state.userLevel);
+  const [openConfirmDelete, setOpenConfirmDelete] = useState(false);
 
   const {
     data: masterData,
@@ -88,10 +90,31 @@ export default function EntryNCR() {
                 color="danger"
                 startDecorator={<Trash2 />}
                 sx={{ paddingY: 1.2 }}
-                onClick={handleDelete}
+                onClick={() => setOpenConfirmDelete(true)}
               >
                 Delete
               </Button>
+              <Dialog
+                open={openConfirmDelete}
+                onClose={(_, reason) => {
+                  if (reason !== 'backdropClick') {
+                    setOpenConfirmDelete(false);
+                  }
+                }}
+              >
+                <DialogTitle>Konfirmasi Hapus</DialogTitle>
+                <DialogContent>
+                  <DialogContent>
+                    <p>Anda yakin ingin menghapus data??</p>
+                  </DialogContent>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setOpenConfirmDelete(false)}>Batal</Button>
+                  <Button onClick={handleDelete} color="danger">
+                    Hapus
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </div>
           )}
         </div>

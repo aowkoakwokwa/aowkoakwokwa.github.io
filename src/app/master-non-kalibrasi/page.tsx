@@ -57,7 +57,11 @@ export default function MasterKalibrasi() {
   });
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+    if (anchorEl) {
+      setAnchorEl(null);
+    } else {
+      setAnchorEl(event.currentTarget);
+    }
   };
   const handleCloseMenu = () => {
     setAnchorEl(null);
@@ -372,7 +376,14 @@ export default function MasterKalibrasi() {
                 >
                   Hapus
                 </Button>
-                <Dialog open={openDialogDelete} onClose={() => setOpenDialogDelete(false)}>
+                <Dialog
+                  open={openDialogDelete}
+                  onClose={(_, reason) => {
+                    if (reason !== 'backdropClick') {
+                      () => setOpenDialogDelete(false);
+                    }
+                  }}
+                >
                   <DialogTitle>Konfirmasi</DialogTitle>
                   <DialogContent>
                     <p>Anda yakin ingin menghapus data??</p>
@@ -620,7 +631,16 @@ const DialogTambah = ({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }}
+      maxWidth="md"
+      fullWidth
+    >
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <DialogTitle>Form Entry Master Non Calibration</DialogTitle>
         <DialogContent className="space-y-4">

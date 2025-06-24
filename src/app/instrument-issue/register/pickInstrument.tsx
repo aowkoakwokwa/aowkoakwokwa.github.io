@@ -1,7 +1,7 @@
 'use client';
 
 import { getLastBorrowStatus, getMaster, getNonMaster } from '@/lib/getData';
-import { Input, Table, Autocomplete } from '@mui/joy';
+import { Input, Table, Autocomplete, DialogActions, Button } from '@mui/joy';
 import { Dialog, DialogContent, DialogTitle, styled, TablePagination } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -48,7 +48,10 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
     refetchOnWindowFocus: false,
   });
 
-  const allData: Instrument[] = [...masterData, ...nonKalibrasiData];
+  const masterFiltered = masterData.filter((item: any) => item.deleted === 0);
+  const nonKalibrasiFiltered = nonKalibrasiData.filter((item: any) => item.deleted === 0);
+
+  const allData: Instrument[] = [...masterFiltered, ...nonKalibrasiFiltered];
 
   const groupByKalibrasi = (item: Instrument) => {
     return item.next_calibration ? 'Kalibrasi' : 'Non-Kalibrasi';
@@ -128,7 +131,16 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
   const paginatedData = scannedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') {
+          handleClose();
+        }
+      }}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>List Item</DialogTitle>
       <DialogContent>
         <div className="flex flex-row gap-5">
@@ -232,6 +244,13 @@ export default function PickInstrument({ open, close }: { open: boolean; close: 
           />
         </div>
       </DialogContent>
+      <DialogActions>
+        <div className="min-w-max pr-8 pb-6">
+          <Button onClick={handleClose} color="danger">
+            Close
+          </Button>
+        </div>
+      </DialogActions>
     </Dialog>
   );
 }

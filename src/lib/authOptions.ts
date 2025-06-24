@@ -16,8 +16,6 @@ export const authOptions: AuthOptions = {
         let ip = typeof forwarded === 'string' ? forwarded.split(',')[0] : 'Tidak diketahui';
         if (ip.startsWith('::ffff:')) ip = ip.substring(7).trim();
 
-        console.log('ipaddress' + ip);
-
         if (!credentials?.username || !credentials?.password || !ip) {
           throw new Error('Username and password required Or Pc Not Yours');
         }
@@ -26,7 +24,6 @@ export const authOptions: AuthOptions = {
           where: {
             username: credentials.username,
             password: credentials.password,
-            pc_name: ip,
           },
         });
 

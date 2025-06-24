@@ -43,9 +43,6 @@ export default function InstrumentForm({
       const id = sessionStorage.getItem('payroll_id');
       const name = sessionStorage.getItem('payroll_name');
       const dept = sessionStorage.getItem('departement');
-
-      console.log('Dari session:', { id, name, dept });
-
       setPayrollId(id || '');
       setPayrollName(name || '');
       setPayrollDepartement(dept || '');
@@ -250,7 +247,16 @@ export default function InstrumentForm({
 
   return (
     <>
-      <Dialog open={open} onClose={close} maxWidth="xs" fullWidth>
+      <Dialog
+        open={open}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            close();
+          }
+        }}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>Instrument Form</DialogTitle>
         <DialogContent>
           <div className="mb-4">

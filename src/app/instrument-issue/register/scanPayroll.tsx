@@ -68,7 +68,16 @@ export default function ScanPayroll({
   };
 
   return (
-    <Dialog open={open} onClose={close} maxWidth="xs" fullWidth>
+    <Dialog
+      open={open}
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') {
+          close();
+        }
+      }}
+      maxWidth="xs"
+      fullWidth
+    >
       <DialogTitle>Set Officer Personnel</DialogTitle>
       <DialogContent>
         <div className="flex flex-col gap-4">

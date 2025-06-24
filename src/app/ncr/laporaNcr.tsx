@@ -85,7 +85,16 @@ export default function LaporanNcr({ open, close }: { open: boolean; close: () =
   const bulanMulaiIndex = months.indexOf(bulanMulai);
 
   return (
-    <Dialog open={open} onClose={close} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={(_, reason) => {
+        if (reason !== 'backdropClick') {
+          close();
+        }
+      }}
+      maxWidth="sm"
+      fullWidth
+    >
       <DialogTitle>Laporan NCR</DialogTitle>
       <DialogContent>
         <div className="flex flex-col gap-2">
