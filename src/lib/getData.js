@@ -10,12 +10,13 @@ const getMaster = async () =>
     },
   });
 
-const getNCR = async () =>
-  await prisma.ncr_master.findMany({
+const getNCR = async () => {
+  return await prisma.ncr_master.findMany({
     orderBy: {
       id: 'desc',
     },
   });
+};
 
 const generateNCRNo = async (selectedDept, selectedNcr) => {
   const deptMapping = {

@@ -288,7 +288,7 @@ enum user_user_level {
 }
 
 enum ncr_master_case {
-  Dash               @map("-")
+  Dash
   Return_To_Supplier @map("Return To Supplier")
   Repair_Rework      @map("Repair/Rework")
   Re_grade           @map("Re-grade")

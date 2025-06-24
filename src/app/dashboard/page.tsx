@@ -13,15 +13,6 @@ import LaporanExpired from './laporanExpired';
 import LaporanTerbaruNcr from './laporanTerbaruNcr';
 import { useUserStore } from '../../../store/store';
 
-function AdminNCRView() {
-  return (
-    <main className="flex-1 p-4">
-      <h2 className="text-lg font-semibold mb-4">Dashboard Admin NCR</h2>
-      <p>Ini adalah tampilan khusus untuk Admin NCR.</p>
-    </main>
-  );
-}
-
 export default function Dashboard() {
   const [mode, setMode] = useState<'periode' | 'tahun'>('periode');
   const userLevel = useUserStore((state) => state.userLevel);

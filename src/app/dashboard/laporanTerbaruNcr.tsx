@@ -25,6 +25,8 @@ export default function LaporanTerbaruNcr() {
     refetchOnWindowFocus: false,
   });
 
+  console.log(data);
+
   if (isLoading) return <Typography>Loading...</Typography>;
   if (isError) return <Typography>Error loading data</Typography>;
 
