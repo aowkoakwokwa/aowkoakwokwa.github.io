@@ -68,6 +68,7 @@ const perpanjangDataMaster = async (data) => {
   }
 
   try {
+    // Update utama berdasarkan id
     const result = await prisma.master_barang.update({
       data: {
         no_jft: data.no_jft || null,
@@ -90,6 +91,7 @@ const perpanjangDataMaster = async (data) => {
       },
     });
 
+    // Tambahkan ke tabel cardek
     const resultCardeck = await prisma.cardek.create({
       data: {
         jft_no: data.no_jft || null,
@@ -104,6 +106,22 @@ const perpanjangDataMaster = async (data) => {
       },
     });
 
+    const foundInMaster = await prisma.master_barang.findFirst({
+      where: {
+        no_jft: data.no_jft,
+      },
+    });
+
+    if (foundInMaster) {
+      await prisma.master_barang.updateMany({
+        where: {
+          no_jft: data.no_jft,
+        },
+        data: {
+          lampiran: data.lampiran,
+        },
+      });
+    }
     return { result, resultCardeck };
   } catch (error) {
     throw error;
@@ -205,6 +223,7 @@ const editReturnData = async (data) => {
       ? formatDateToSQLString(new Date(data.tgl_kembali))
       : undefined;
 
+    // 1. Update tabel utama peminjaman_tool
     const updated = await prisma.peminjaman_tool.update({
       where: {
         usage_no: data.usage_no,
@@ -221,12 +240,21 @@ const editReturnData = async (data) => {
     const detailKey = Object.keys(data.detail || {})[0];
     const detailArray = data.detail?.[detailKey] || [];
 
+    // 2. Loop data detail
     for (const item of detailArray) {
-      if (!item || item.id == null) {
-        continue;
-      }
+      if (!item || item.id == null) continue;
 
-      const result = await prisma.peminjaman_tool_detail.updateMany({
+      // 2a. Ambil data return sebelumnya
+      const existingDetail = await prisma.peminjaman_tool_detail.findUnique({
+        where: { id: Number(item.id) },
+        select: { jft_no: true, return: true },
+      });
+
+      const noJft = existingDetail?.jft_no;
+      const sudahReturnSebelumnya = existingDetail?.return === 1;
+
+      // 2b. Update kondisi dan kembali
+      await prisma.peminjaman_tool_detail.update({
         where: {
           id: Number(item.id),
         },
@@ -234,8 +262,31 @@ const editReturnData = async (data) => {
           kembali: item.return ? 'Ya' : 'Tidak',
           kondisi: item.good ? 'Baik' : 'Baik',
           kondisi2: item.nc ? 'NC' : 'Baik',
+          return: item.return ? 1 : 0, // <-- update flag return
         },
       });
+
+      // 2c. Jika item dikembalikan dan sebelumnya belum pernah return, update degree_usage
+      if (item.return && !sudahReturnSebelumnya && noJft) {
+        const master = await prisma.master_barang.findFirst({
+          where: { no_jft: noJft },
+          select: { id: true, degree_usage: true },
+        });
+
+        if (master) {
+          const currentUsage = Number(master.degree_usage) || 0;
+          const additionalUsage = Number(data.batch_qty) || 0;
+
+          console.log(currentUsage, additionalUsage);
+
+          await prisma.master_barang.update({
+            where: { id: master.id },
+            data: {
+              degree_usage: String(currentUsage + additionalUsage),
+            },
+          });
+        }
+      }
     }
 
     return updated;

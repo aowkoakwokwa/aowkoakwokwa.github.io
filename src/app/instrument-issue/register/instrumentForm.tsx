@@ -6,13 +6,14 @@ import dayjs from 'dayjs';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, set, useForm } from 'react-hook-form';
 import PickInstrument from './pickInstrument';
-import { useScannedStore } from '../../../../store/store';
+import { useScannedStore, useUserStore } from '../../../../store/store';
 import { CircularProgress } from '@mui/joy';
 import { useMutation } from '@tanstack/react-query';
 import DateTimePicker from './customDateTime';
 import { insertDataInstrument } from '@/lib/insertData';
 import { insertDetailPeminjaman } from '@/lib/insertData';
 import OperatorForm from './operatorForm';
+import { Users } from 'lucide-react';
 
 export default function InstrumentForm({
   open,
@@ -37,6 +38,7 @@ export default function InstrumentForm({
   const [payrollName, setPayrollName] = useState('');
   const [payrollDepartement, setPayrollDepartement] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const userData = useUserStore((state) => state.userData);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -227,13 +229,13 @@ export default function InstrumentForm({
       const mainData = {
         ...data,
         imageUrl,
+        users: userData?.username,
       };
-
-      console.log(mainData);
 
       const detailData = scannedData.map((item: any) => ({
         usage_no: data.usage_no,
         jft_no: item.no_jft ?? null,
+        users: userData?.username,
       }));
 
       mutation.mutate({ mainData, detailData });

@@ -4,7 +4,6 @@ import { getFilteredNCR } from '@/lib/getData';
 import dayjs from 'dayjs';
 
 export async function generateEntryReport(data: any) {
-  console.log(data);
   try {
     const filteredData = await getFilteredNCR(
       data.tahun,
@@ -13,13 +12,13 @@ export async function generateEntryReport(data: any) {
       data.departement,
     );
 
-    const sanitizedData = filteredData.map((item) =>
-      Object.fromEntries(
-        Object.entries(item).map(([key, value]) => [key, value === null ? '-' : value]),
-      ),
-    );
-
-    console.log(sanitizedData);
+    const sanitizedData = filteredData
+      .filter((item) => item.case !== 'Dash')
+      .map((item) =>
+        Object.fromEntries(
+          Object.entries(item).map(([key, value]) => [key, value === null ? '-' : value]),
+        ),
+      );
 
     const styles = StyleSheet.create({
       page: { padding: 20, fontSize: 10, fontFamily: 'Times-Roman' },
@@ -28,16 +27,11 @@ export async function generateEntryReport(data: any) {
         flexDirection: 'row',
         position: 'relative',
         justifyContent: 'space-between',
-        left: -250,
-        top: 385,
         alignItems: 'center',
-        transform: 'rotate(-90deg)',
       },
       tableContainer: {
         position: 'absolute',
         left: 15,
-        top: 225,
-        transform: 'rotate(-90deg)',
         transformOrigin: '300 300',
       },
       table: {
@@ -66,7 +60,7 @@ export async function generateEntryReport(data: any) {
       subHeaderText: { fontSize: 12, textAlign: 'center' },
       totalRow: { flexDirection: 'row', backgroundColor: '#d4d4d4' },
       grandTotalRow: { flexDirection: 'row', backgroundColor: '#c0c0c0' },
-      logo: { width: 40, height: 40, marginRight: 10 },
+      logo: { width: 170, height: 40, marginRight: 10, paddingVertical: 5 },
     });
 
     const categories = [
@@ -132,21 +126,52 @@ export async function generateEntryReport(data: any) {
       {} as Record<string, { pcs: number; kg: number }>,
     );
 
-    const grandTotal = Object.values(totalCases).reduce(
+    const allTotalCases = sanitizedData.reduce(
+      (acc, item) => {
+        const dateKey = new Date(item.issued_date).toISOString().split('T')[0];
+
+        if (!acc[dateKey]) {
+          acc[dateKey] = { pcs: 0, kg: 0 };
+        }
+
+        acc[dateKey].pcs += Number(item.pcs) || 0;
+        acc[dateKey].kg += Number(item.kg) || 0;
+
+        return acc;
+      },
+      {} as Record<string, { pcs: number; kg: number }>,
+    );
+
+    const grandTotal = Object.values(allTotalCases).reduce(
       (acc, item) => {
         acc.pcs += item.pcs ?? 0;
         acc.kg += item.kg ?? 0;
         return acc;
       },
-      { pcs: 0, kg: 0 }, // Default nilai awal
+      { pcs: 0, kg: 0 },
     );
 
     const grandTotalFaults = Object.values(totalFaults).reduce((acc, count) => acc + count, 0);
 
     const ReportDocument = (
       <Document>
-        <Page size="A4" style={styles.page}>
+        <Page size="A4" orientation="landscape" style={styles.page}>
           <View style={styles.tableContainer}>
+            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: 5,
+                  borderWidth: 1,
+                  marginRight: 197,
+                }}
+              >
+                <Text style={{ fontSize: 8 }}>Form No. : 04-12</Text>
+                <Text style={{ fontSize: 8 }}>Rev No. : 5</Text>
+                <Text style={{ fontSize: 8 }}>Date Rev : 10 June 2023</Text>
+              </View>
+            </View>
             <View style={styles.table}>
               <View style={[styles.tableRow]}>
                 <View style={{ flexDirection: 'column' }}>
@@ -161,11 +186,7 @@ export async function generateEntryReport(data: any) {
                     }}
                   >
                     <View>
-                      <Image src={'/images/logo.png'} style={styles.logo} />
-                    </View>
-                    <View>
-                      <Text style={styles.headerText}>PT. SAGATRADE MURNI</Text>
-                      <Text style={styles.subHeaderText}>Primary Cementing Equipment</Text>
+                      <Image src={'/images/instrument/pdflogo.png'} style={styles.logo} />
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', height: 37 }}>
@@ -371,7 +392,7 @@ export async function generateEntryReport(data: any) {
               {sanitizedData.map((item: any) => (
                 <View
                   wrap
-                  key={item.ncrNo}
+                  key={item.ncr_no}
                   style={[
                     styles.tableRow,
                     {

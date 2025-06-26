@@ -45,119 +45,124 @@ export default function IssueRegisterPDF({
       return dateA.getTime() - dateB.getTime();
     });
 
-  console.log(filteredTools);
-
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <View style={styles.header}>
-          <div style={styles.leftHeader}>
-            <Image src="/images/logo.png" style={styles.logo} />
-            <div style={styles.titleContainer}>
-              <Text style={styles.title}>PT. SAGATRADE MURNI</Text>
-              <Text style={styles.subTitle}>Primary Cementing Equipment</Text>
-            </div>
-          </div>
-          <div style={styles.titleContainer}>
-            <Text style={styles.title2}>INSTRUMENT ISSUE REGISTER</Text>
-          </div>
+        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end' }}>
+          <View style={{ display: 'flex', flexDirection: 'column', padding: 5, borderWidth: 1 }}>
+            <Text>Form No. : 04-12</Text>
+            <Text>Rev No. : 5</Text>
+            <Text>Date Rev : 10 June 2023</Text>
+          </View>
         </View>
-
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.tableRow, styles.tableHeader]}>
-            <div style={styles.thNo}>
-              <Text>No.</Text>
+        <View>
+          <View style={styles.header}>
+            <div style={styles.leftHeader}>
+              <Image src="/images/instrument/pdflogo.png" style={styles.logo} />
             </div>
-            <div style={styles.thDesc}>
-              <Text>JFT/Description</Text>
-            </div>
-            <div style={styles.thRef}>
-              <Text>Reference Work Order and Special Note refer to</Text>
-            </div>
-            <div style={styles.thQty}>
-              <Text>Qty</Text>
-            </div>
-            <div style={styles.thIssued}>
-              <div style={styles.border}>
-                <Text>ISSUED</Text>
-              </div>
-              <div style={styles.subTh}>
-                <Text style={styles.subThReturned}>Date</Text>
-                <Text style={styles.subThReturned}>User</Text>
-                <Text style={styles.subThReturned}>Issuer</Text>
-                <Text style={styles.subThReturn}>Condition</Text>
-              </div>
-            </div>
-            <div style={styles.thReturned}>
-              <div style={styles.bordered}>
-                <Text>RETURN</Text>
-              </div>
-              <div style={styles.subTh}>
-                <Text style={styles.subThReturned}>Date</Text>
-                <Text style={styles.subThReturned}>User</Text>
-                <Text style={styles.subThReturned}>Receiver</Text>
-                <Text style={styles.subThReturned}>Condition</Text>
-              </div>
+            <div style={styles.titleContainer}>
+              <Text style={styles.title2}>INSTRUMENT ISSUE REGISTER</Text>
             </div>
           </View>
 
-          {filteredTools.length === 0 ? (
-            <View
-              style={[
-                styles.tableRow,
-                { borderBottom: '1px solid black', borderRight: '1px solid black' },
-              ]}
-            >
-              <Text
-                style={{
-                  padding: 10,
-                  fontSize: 12,
-                  textAlign: 'center',
-                  width: '100%',
-                }}
-              >
-                Tidak ada data issue untuk periode ini.
-              </Text>
+          <View style={styles.table}>
+            {/* Header */}
+            <View style={[styles.tableRow, styles.tableHeader]}>
+              <div style={styles.thNo}>
+                <Text>No.</Text>
+              </div>
+              <div style={styles.thDesc}>
+                <Text>JFT/Description</Text>
+              </div>
+              <div style={styles.thRef}>
+                <Text>Reference Work Order and Special Note refer to</Text>
+              </div>
+              <div style={styles.thQty}>
+                <Text>Qty</Text>
+              </div>
+              <div style={styles.thIssued}>
+                <div style={styles.border}>
+                  <Text>ISSUED</Text>
+                </div>
+                <div style={styles.subTh}>
+                  <Text style={styles.subThReturned}>Date</Text>
+                  <Text style={styles.subThReturned}>User</Text>
+                  <Text style={styles.subThReturned}>Issuer</Text>
+                  <Text style={styles.subThReturn}>Condition</Text>
+                </div>
+              </div>
+              <div style={styles.thReturned}>
+                <div style={styles.bordered}>
+                  <Text>RETURN</Text>
+                </div>
+                <div style={styles.subTh}>
+                  <Text style={styles.subThReturned}>Date</Text>
+                  <Text style={styles.subThReturned}>User</Text>
+                  <Text style={styles.subThReturned}>Receiver</Text>
+                  <Text style={styles.subThReturned}>Condition</Text>
+                </div>
+              </div>
             </View>
-          ) : (
-            filteredTools.map((tool, i) => (
-              <View style={styles.tableRow} key={i}>
-                <Text style={styles.thNo}>{i + 1}</Text>
-                <Text style={styles.thDesc}>
-                  {tool.jft_no} / {tool.deskripsi}
+
+            {filteredTools.length === 0 ? (
+              <View
+                style={[
+                  styles.tableRow,
+                  { borderBottom: '1px solid black', borderRight: '1px solid black' },
+                ]}
+              >
+                <Text
+                  style={{
+                    padding: 10,
+                    fontSize: 12,
+                    textAlign: 'center',
+                    width: '100%',
+                  }}
+                >
+                  Tidak ada data issue untuk periode ini.
                 </Text>
-                <Text style={styles.thRef}>{tool.peminjaman?.wo_refer_to ?? '-'}</Text>
-                <Text style={styles.thQty}>{tool.peminjaman?.batch_qty ?? '-'}</Text>
-
-                <View style={styles.thIssued}>
-                  <div style={styles.subTh}>
-                    <Text style={styles.subThReturned}>
-                      {dayjs(tool.peminjaman?.tgl_diterima).format('DD-MM-YYYY')}
-                    </Text>
-                    <Text style={styles.subThReturned}>{tool.peminjaman?.issued_by ?? '-'}</Text>
-                    <Text style={styles.subThReturned}>
-                      {tool.peminjaman?.no_payroll && tool.peminjaman?.nama
-                        ? `${tool.peminjaman.no_payroll} - ${tool.peminjaman.nama}`
-                        : '-'}
-                    </Text>
-                    <Text style={styles.subThReturn}>{tool.kondisi ?? '-'}</Text>
-                  </div>
-                </View>
-
-                <View style={styles.thReturned}>
-                  <div style={styles.subTh}>
-                    <Text style={styles.subThReturned}>
-                      {dayjs(tool.peminjaman?.tgl_diterima).format('DD-MM-YYYY')}
-                    </Text>
-                    <Text style={styles.subThReturned}>{tool.peminjaman?.user_return ?? '-'}</Text>
-                    <Text style={styles.subThReturned}>{tool.peminjaman?.return_by ?? '-'}</Text>
-                    <Text style={styles.subThReturned}>{tool.kondisi2 ?? '-'}</Text>
-                  </div>
-                </View>
               </View>
-            ))
-          )}
+            ) : (
+              filteredTools.map((tool, i) => (
+                <View style={styles.tableRow} key={i}>
+                  <Text style={styles.thNo}>{i + 1}</Text>
+                  <Text style={styles.thDesc}>
+                    {tool.jft_no} / {tool.deskripsi}
+                  </Text>
+                  <Text style={styles.thRef}>{tool.peminjaman?.wo_refer_to ?? '-'}</Text>
+                  <Text style={styles.thQty}>{tool.peminjaman?.batch_qty ?? '-'}</Text>
+
+                  <View style={styles.thIssued}>
+                    <div style={styles.subTh}>
+                      <Text style={styles.subThReturned}>
+                        {dayjs(tool.peminjaman?.tgl_diterima).format('DD-MM-YYYY')}
+                      </Text>
+                      <Text style={styles.subThReturned}>{tool.peminjaman?.issued_by ?? '-'}</Text>
+                      <Text style={styles.subThReturned}>
+                        {tool.peminjaman?.no_payroll && tool.peminjaman?.nama
+                          ? `${tool.peminjaman.no_payroll} - ${tool.peminjaman.nama}`
+                          : '-'}
+                      </Text>
+                      <Text style={styles.subThReturn}>{tool.kondisi ?? '-'}</Text>
+                    </div>
+                  </View>
+
+                  <View style={styles.thReturned}>
+                    <div style={styles.subTh}>
+                      <Text style={styles.subThReturned}>
+                        {dayjs(tool.peminjaman?.tgl_diterima).format('DD-MM-YYYY')}
+                      </Text>
+                      <Text style={styles.subThReturned}>
+                        {tool.peminjaman?.user_return ?? '-'}
+                      </Text>
+                      <Text style={styles.subThReturned}>{tool.peminjaman?.return_by ?? '-'}</Text>
+                      <Text style={styles.subThReturned}>{tool.kondisi2 ?? '-'}</Text>
+                    </div>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
         </View>
       </Page>
     </Document>
@@ -171,7 +176,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
   },
   header: {
-    marginBottom: 10,
+    paddingHorizontal: 10,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -181,9 +186,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   logo: {
-    width: 40,
+    width: 200,
     height: 40,
-    marginRight: 10,
+    marginVertical: 10,
   },
   title: {
     fontSize: 16,

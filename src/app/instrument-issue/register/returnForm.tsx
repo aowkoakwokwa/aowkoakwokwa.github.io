@@ -31,6 +31,8 @@ export default function ReturnForm({
   const [payrollName, setPayrollName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  console.log(checkedMap);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const id = sessionStorage.getItem('payroll_id') || '';
@@ -432,7 +434,6 @@ export default function ReturnForm({
                 });
               } catch (error: any) {
                 console.error('Submit error:', error);
-                alert(error.message || 'Terjadi kesalahan saat submit');
               } finally {
                 setIsSubmitting(false);
               }

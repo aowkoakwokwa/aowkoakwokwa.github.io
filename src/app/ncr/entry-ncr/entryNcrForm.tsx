@@ -1,11 +1,20 @@
 'use client';
 
 import { CancelOutlined, SaveAltOutlined } from '@mui/icons-material';
-import { Input, Select, Button, Option, Textarea, Checkbox, Tooltip } from '@mui/joy';
+import {
+  Input,
+  Select,
+  Button,
+  Option,
+  Textarea,
+  Checkbox,
+  Tooltip,
+  CircularProgress,
+} from '@mui/joy';
 import { Dialog, DialogActions, DialogTitle, DialogContent } from '@mui/material';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, set, useWatch } from 'react-hook-form';
 import SelectWithCheckbox from './selectWithCheckbox';
 import NcrComponent from './generateNcrNo';
 import { getNCRById } from '@/lib/getData';
@@ -72,6 +81,16 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
   const [cv, setCv] = useState('No');
   const { toggleCheck } = useCheckedStore();
   const userData = useUserStore((state) => state.userData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const source = useWatch({ control: form.control, name: 'source' });
+
+  useEffect(() => {
+    if (source === 'ExStock') {
+      form.setValue('departement', 'Warehouse');
+    } else if (source === 'Customer') {
+      form.setValue('departement', 'Cementing');
+    }
+  }, [source, form]);
 
   const { data, refetch } = useQuery({
     queryKey: ['getNCRById', id],
@@ -123,6 +142,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
   });
 
   const onSubmit = async (formData: any) => {
+    setIsSubmitting(true);
     try {
       let lampiranPath = formData.lampiran || '';
 
@@ -157,8 +177,11 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
         console.error('Data yang dikirim kosong atau null!');
         return;
       }
-
-      mutation.mutate(formattedData);
+      mutation.mutate(formattedData, {
+        onSettled: () => {
+          setIsSubmitting(false);
+        },
+      });
       setSelectedFile(null);
       refetch();
     } catch (error) {
@@ -372,6 +395,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
                   <label className="block font-medium mb-1">Batch Qty.</label>
                   <Controller
                     control={form.control}
+                    defaultValue={0}
                     name="batch_qty"
                     render={({ field: { value, onChange } }) => (
                       <Tooltip title={!value ? 'Field is required' : ''} arrow>
@@ -382,7 +406,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                           placeholder="Type something.."
                           required
-                          value={value || ''}
+                          value={value}
                         />
                       </Tooltip>
                     )}
@@ -424,6 +448,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
                     <label className="block font-medium mb-1">Pcs</label>
                     <Controller
                       control={form.control}
+                      defaultValue={0}
                       name="pcs"
                       render={({ field: { value, onChange } }) => (
                         <Tooltip title={!value ? 'Field is required' : ''} arrow>
@@ -434,7 +459,7 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
                             required
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                             placeholder="Type something.."
-                            value={value || ''}
+                            value={value}
                           />
                         </Tooltip>
                       )}
@@ -565,6 +590,8 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
                           <Option value="CNC">CNC</Option>
                           <Option value="Assembly">Assembly</Option>
                           <Option value="SCP">SCP</Option>
+                          <Option value="Warehouse">Warehouse</Option>
+                          <Option value="Cementing">Cementing</Option>
                         </Select>
                       </Tooltip>
                     )}
@@ -610,8 +637,13 @@ export default function EntryNCRForm({ open, close, id, isEdit }: EntryNcrFormPr
             </div>
           </DialogContent>
           <DialogActions>
-            <Button color="success" type="submit" startDecorator={<SaveAltOutlined />}>
-              {isEdit ? 'Update' : 'Save'}
+            <Button
+              color="success"
+              type="submit"
+              startDecorator={isSubmitting ? <CircularProgress size="sm" /> : <SaveAltOutlined />}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (isEdit ? 'Updating' : 'Saving') : isEdit ? 'Update' : 'Save'}
             </Button>
             <Button color="danger" startDecorator={<CancelOutlined />} onClick={close}>
               Cancel

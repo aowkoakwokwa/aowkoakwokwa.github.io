@@ -142,6 +142,7 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
                 <TableCell
                   key={index}
                   className="max-w-[150px] overflow-hidden whitespace-nowrap text-ellipsis"
+                  title={header}
                 >
                   {header}
                 </TableCell>
@@ -198,6 +199,7 @@ export default function EntryNCRTable({ data = [] }: EntryNCRTableProps) {
                   <TableCell
                     key={idx}
                     className="max-w-[150px] overflow-hidden whitespace-nowrap text-ellipsis"
+                    title={value as string}
                   >
                     {idx === 15 && value ? (
                       <a

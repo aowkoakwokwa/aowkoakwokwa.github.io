@@ -14,6 +14,8 @@ export default function InstrumentListTable() {
     (state) => state.updateCheckedInstrument,
   );
 
+  console.log(checkedMap);
+
   const { data = [] } = useQuery({
     queryKey: ['getInstrumentDataDetail', selectedId?.usage_no],
     queryFn: () => getInstrumentDataDetail(selectedId?.usage_no),
@@ -95,18 +97,21 @@ export default function InstrumentListTable() {
                   <Checkbox
                     checked={checkedData[index]?.return || false}
                     onChange={() => handleCheckboxChange(index, 'return')}
+                    disabled={isReturned}
                   />
                 </td>
                 <td>
                   <Checkbox
                     checked={checkedData[index]?.good || false}
                     onChange={() => handleCheckboxChange(index, 'good')}
+                    disabled={isReturned}
                   />
                 </td>
                 <td>
                   <Checkbox
                     checked={checkedData[index]?.nc || false}
                     onChange={() => handleCheckboxChange(index, 'nc')}
+                    disabled={isReturned}
                   />
                 </td>
               </tr>

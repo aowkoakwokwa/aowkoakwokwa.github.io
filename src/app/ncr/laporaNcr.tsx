@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogActions, DialogTitle } from '@mui/material';
-import { Select, Option, Button, Radio, RadioGroup } from '@mui/joy';
+import { Select, Option, Button, Radio, RadioGroup, CircularProgress } from '@mui/joy';
 import { useState } from 'react';
 import { generateDefectReport } from './report/defectReport';
 import { generateEntryReport } from './report/entryReport';
@@ -14,6 +14,7 @@ export default function LaporanNcr({ open, close }: { open: boolean; close: () =
   const [bulanAkhir, setBulanAkhir] = useState('Desember');
   const [selectedReport, setSelectedReport] = useState('entry');
   const currentYear = new Date().getFullYear();
+  const [loading, setLoading] = useState(false);
   const [selectedSource, setSelectedSource] = useState<string | null>('Semua');
   const [selectedYear, setSelectedYear] = useState<string | null>(String(new Date().getFullYear()));
   const [selectedDepartement, setSelectedDepartement] = useState<string | null>('Semua');
@@ -32,53 +33,60 @@ export default function LaporanNcr({ open, close }: { open: boolean; close: () =
     'Desember',
   ];
 
-  const handlePrint = () => {
-    const monthToNumber = (month: string) => {
-      const months: { [key: string]: string } = {
-        Januari: '01',
-        Februari: '02',
-        Maret: '03',
-        April: '04',
-        Mei: '05',
-        Juni: '06',
-        Juli: '07',
-        Agustus: '08',
-        September: '09',
-        Oktober: '10',
-        November: '11',
-        Desember: '12',
+  const handlePrint = async () => {
+    setLoading(true);
+    try {
+      const monthToNumber = (month: string) => {
+        const months: { [key: string]: string } = {
+          Januari: '01',
+          Februari: '02',
+          Maret: '03',
+          April: '04',
+          Mei: '05',
+          Juni: '06',
+          Juli: '07',
+          Agustus: '08',
+          September: '09',
+          Oktober: '10',
+          November: '11',
+          Desember: '12',
+        };
+        return months[month] || '00';
       };
-      return months[month] || '00';
-    };
 
-    const reportData = {
-      source: selectedSource,
-      tahun: selectedYear,
-      bulan:
-        periode === 'bulan'
-          ? monthToNumber(bulan)
-          : `${monthToNumber(bulanMulai)} - ${monthToNumber(bulanAkhir)}`,
-      departement: selectedDepartement,
-    };
+      const reportData = {
+        source: selectedSource,
+        tahun: selectedYear,
+        bulan:
+          periode === 'bulan'
+            ? monthToNumber(bulan)
+            : `${monthToNumber(bulanMulai)} - ${monthToNumber(bulanAkhir)}`,
+        departement: selectedDepartement,
+      };
 
-    switch (selectedReport) {
-      case 'entry':
-        generateEntryReport(reportData);
-        break;
-      case 'defect':
-        generateDefectReport(reportData);
-        break;
-      case 'pcs':
-        generateTotalPcsReport(reportData);
-        break;
-      case 'case':
-        generateTotalCaseReport(reportData);
-        break;
-      case 'fault':
-        generateFaultCodeReport(reportData);
-        break;
-      default:
-        console.error('Unknown report type');
+      switch (selectedReport) {
+        case 'entry':
+          await generateEntryReport(reportData);
+          break;
+        case 'defect':
+          await generateDefectReport(reportData);
+          break;
+        case 'pcs':
+          await generateTotalPcsReport(reportData);
+          break;
+        case 'case':
+          await generateTotalCaseReport(reportData);
+          break;
+        case 'fault':
+          await generateFaultCodeReport(reportData);
+          break;
+        default:
+          console.error('Unknown report type');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -247,8 +255,13 @@ export default function LaporanNcr({ open, close }: { open: boolean; close: () =
       </DialogContent>
 
       <DialogActions className="flex justify-end gap-2 p-4">
-        <Button onClick={handlePrint} color="success">
-          Print
+        <Button
+          onClick={handlePrint}
+          color="success"
+          disabled={loading}
+          startDecorator={loading ? <CircularProgress size="sm" /> : null}
+        >
+          {loading ? 'Generating...' : 'Print'}
         </Button>
         <Button type="button" color="danger" onClick={close}>
           Cancel

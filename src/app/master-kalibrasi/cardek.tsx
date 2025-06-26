@@ -166,7 +166,16 @@ export default function Cardek({
 
   return (
     <>
-      <Dialog open={open} onClose={close} maxWidth="xl" fullWidth>
+      <Dialog
+        open={open}
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') {
+            close();
+          }
+        }}
+        maxWidth="xl"
+        fullWidth
+      >
         <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center' }}>Cardek Details</DialogTitle>
         <DialogContent sx={{ padding: 2, pb: 0 }}>
           {filteredData.length > 0 ? (
@@ -273,6 +282,9 @@ export default function Cardek({
             startDecorator={<Printer />}
           >
             Preview Print
+          </Button>
+          <Button color="danger" onClick={close}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>

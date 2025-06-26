@@ -220,7 +220,11 @@ export async function generateDefectReport(data: any) {
       data.departement,
     );
 
-    const totalPcs = filteredData.reduce((sum, item) => sum + (item.pcs || 0), 0);
+    const totalPcs = filteredData.reduce((sum, item) => {
+      if (item.case === 'Dash') return sum;
+      return sum + (item.pcs || 0);
+    }, 0);
+
     const monthPeriod = getMonthPeriod(data.bulan);
 
     const caseCounts = {
@@ -298,7 +302,9 @@ export async function generateDefectReport(data: any) {
       highestFaultMonth,
     );
 
-    const highestFaultCount = Math.max(...Object.values(faultCountsPerMonth[highestFaultMonth]));
+    const highestFaultCount = faultCountsPerMonth[highestFaultMonth]
+      ? Math.max(...Object.values(faultCountsPerMonth[highestFaultMonth]))
+      : 0;
 
     const formatCaseName = (caseName: string) => {
       return caseName.replace(/_/g, ' ');

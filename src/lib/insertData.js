@@ -180,7 +180,7 @@ const insertDataInstrument = async (data) => {
         image: data.imageUrl || '',
         issued_by: data.payroll_id + ' - ' + data.payroll_name || '',
         create_at: getLocalDate(),
-        create_by: 'administrator',
+        create_by: data.users,
       },
     });
 
@@ -198,7 +198,7 @@ const insertDetailPeminjaman = async (usage_no, scannedData) => {
         jft_no: item.jft_no ?? null,
         kembali: 'Tidak',
         create_at: getLocalDate(),
-        create_by: 'administrator',
+        create_by: scannedData[0]?.users,
       };
     });
 
@@ -214,7 +214,6 @@ const insertDetailPeminjaman = async (usage_no, scannedData) => {
 };
 
 const insertManualCardek = async (data) => {
-  console.log(data);
   try {
     const result = await prisma.cardek_file.create({
       data: {

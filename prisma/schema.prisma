@@ -179,6 +179,7 @@ model peminjaman_tool_detail {
   id        Int       @id @default(autoincrement())
   create_at DateTime  @db.DateTime(0)
   create_by String    @db.VarChar(255)
+  return    Int?      @default(0)
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

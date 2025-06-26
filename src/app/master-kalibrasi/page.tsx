@@ -25,7 +25,7 @@ import { insertDataMaster } from '@/lib/insertData';
 import { editDataMaster, perpanjangDataMaster, editDeleteData } from '@/lib/editData';
 import Cardek from './cardek';
 import dayjs from 'dayjs';
-import { useUserStore } from '../../../store/store';
+import { useSelectionStore, useUserStore } from '../../../store/store';
 
 export default function MasterKalibrasi() {
   const [openInsert, setOpenInsert] = useState(false);
@@ -35,7 +35,7 @@ export default function MasterKalibrasi() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const { selectedRows, setSelectedRows, clearSelectedRows } = useSelectionStore();
   const [openDialogDelete, setOpenDialogDelete] = useState(false);
   const [openDialogExtend, setOpenDialogExtend] = useState(false);
   const [openDialogNextCalibration, setOpenDialogNextCalibration] = useState(false);
@@ -48,7 +48,8 @@ export default function MasterKalibrasi() {
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => await editDeleteData(id),
     onSuccess: () => {
-      setSelectedRows((prev) => prev.filter((id) => id !== selectedRows?.[0]));
+      const filtered = selectedRows.filter((row) => row.id !== selectedRows?.[0]?.id);
+      setSelectedRows(filtered);
       setTableSelect('');
       setOpenDialogDelete(false);
       masterData.refetch();
@@ -102,7 +103,6 @@ export default function MasterKalibrasi() {
               ? isUpdated
               : row.status.toLowerCase().includes(filterStatus.toLowerCase());
 
-        // Ubah bagian ini agar hanya memfilter berdasarkan no_jft
         const matchesSearchTerm = row.no_jft
           ?.toString()
           .toLowerCase()
@@ -166,106 +166,166 @@ export default function MasterKalibrasi() {
     if (selectedRows.length === 0) return;
 
     const filteredIDs = selectedRows.filter((row) => typeof row === 'number');
-
     if (filteredIDs.length === 0) return;
+
+    const DPI = 400;
+    const mmToPx = (mm: number) => (mm * DPI) / 25.4;
+
+    const labelWidthMm = 34.5;
+    const labelHeightMm = 17.9;
+
+    const barcodeWidthMm = 26.79;
+    const barcodeHeightMm = 3.3;
+
+    const leftPaddingMm = 5;
+    const leftPaddingPx = mmToPx(leftPaddingMm);
+
+    const canvasWidth = mmToPx(labelWidthMm);
+    const canvasHeight = mmToPx(labelHeightMm);
+
+    const barcodeWidthPx = mmToPx(barcodeWidthMm);
+    const barcodeHeightPx = mmToPx(barcodeHeightMm);
 
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: [80, 103],
+      format: [labelWidthMm, labelHeightMm],
       compress: false,
     });
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
     if (!ctx) return;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
     filteredIDs.forEach((id, idx) => {
       const rowData = filteredRows.find((row) => row.id === id);
-      if (!rowData) return;
+      if (!rowData || !rowData.no_jft) return;
 
-      const { no_jft, calibration_date, next_calibration } = rowData;
-      if (!no_jft || !calibration_date || !next_calibration) return;
+      const no_jft = rowData.no_jft;
+      const formatDate = (dateInput: string | Date | null | undefined) => {
+        if (!dateInput) return '-';
+        const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = date.toLocaleString('id-ID', { month: 'short' }).toUpperCase();
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+      };
 
-      const formattedCalibrationDate = new Date(calibration_date).toLocaleDateString();
-      const formattedNextCalibration = new Date(next_calibration).toLocaleDateString();
+      const calDate = formatDate(rowData.calibration_date);
+      const dueDate = formatDate(rowData.next_calibration);
+      const by = 'RUDI HASTOMO';
 
       const svgContainer = document.createElement('div');
       const root = createRoot(svgContainer);
-      root.render(<Barcode value={no_jft} format="CODE128" displayValue={false} />);
+      root.render(
+        <Barcode
+          value={no_jft}
+          format="CODE39"
+          displayValue={false}
+          height={barcodeHeightPx}
+          width={1}
+          margin={0}
+          background="#ffffff"
+        />,
+      );
 
       setTimeout(() => {
         const svgElement = svgContainer.querySelector('svg');
         if (!svgElement) return;
 
-        const svgRect = svgElement.getBoundingClientRect();
-        const barcodeWidth = svgRect.width || 180;
-        const barcodeHeight = svgRect.height || 60;
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const base64 = btoa(unescape(encodeURIComponent(svgData)));
+        const img = new Image();
+        img.src = `data:image/svg+xml;base64,${base64}`;
 
-        const aspectRatio = 9 / 16;
-        let canvasWidth = barcodeWidth + 80;
-        let canvasHeight = canvasWidth / aspectRatio;
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        if (canvasHeight < barcodeHeight + 120) {
-          canvasHeight = barcodeHeight + 120;
-          canvasWidth = canvasHeight * aspectRatio;
-        }
-
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight - 30;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        const logo = new Image();
-        logo.src = '/images/logo-calibration.png';
-
-        logo.onload = () => {
-          const logoWidth = barcodeWidth + 27;
-          const logoHeight = barcodeHeight - 20;
-          const logoX = (canvasWidth - logoWidth + 27) / 2;
-          const logoY = 10;
-
-          ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
-
-          ctx.font = 'bold 18px Arial';
-
-          const labelX = 40;
-          const colonX = 85;
-          const valueX = 100;
-
-          const baseY = logoY + logoHeight + 25;
-          const lineSpacing = 25;
-          ctx.fillText('CAL', labelX, baseY);
-          ctx.fillText(':', colonX, baseY);
-          ctx.fillText(formattedCalibrationDate, valueX, baseY);
-
-          ctx.fillText('DUE', labelX, baseY + lineSpacing);
-          ctx.fillText(':', colonX, baseY + lineSpacing);
-          ctx.fillText(formattedNextCalibration, valueX, baseY + lineSpacing);
-
-          ctx.fillText('BY', labelX, baseY + lineSpacing * 2);
-          ctx.fillText(':', colonX, baseY + lineSpacing * 2);
-          ctx.fillText('RUDI HASTOMO', valueX, baseY + lineSpacing * 2);
-
+          // ➤ Vertical no_jft
           ctx.save();
-          ctx.translate(30, canvasHeight / 2 - 110);
+          const verticalTextX = mmToPx(4);
+          const verticalTextY = canvasHeight / 2;
+          ctx.translate(verticalTextX, verticalTextY);
           ctx.rotate(-Math.PI / 2);
-          ctx.font = 'bold 28px Arial';
-          ctx.fillText(`${no_jft}`, 0, 0);
+          ctx.font = `bold ${mmToPx(2.8)}px Courier`;
+          ctx.fillStyle = '#000';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.strokeText(no_jft, 0, 0);
+          ctx.fillText(no_jft, 0, 0);
           ctx.restore();
 
-          const svgData = new XMLSerializer().serializeToString(svgElement);
-          const img = new Image();
-          img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+          // ➤ Draw barcode
+          const contentWidth = canvasWidth - leftPaddingPx;
+          const barcodeX = leftPaddingPx + (contentWidth - barcodeWidthPx) / 2;
+          const barcodeY = canvas.height - barcodeHeightPx;
+          ctx.drawImage(img, barcodeX, barcodeY, barcodeWidthPx, barcodeHeightPx);
 
-          img.onload = () => {
-            const barcodeX = (canvasWidth - barcodeWidth) / 2;
-            const barcodeY = logoY + logoHeight + 85;
-            ctx.drawImage(img, barcodeX, barcodeY, barcodeWidth + 27, barcodeHeight - 20);
+          // ➤ Load logo
+          const logo = new Image();
+          logo.src = '/images/logoblack.png';
+          logo.onload = () => {
+            const logoMaxWidthPx = mmToPx(4);
+            const logoAspectRatio = logo.width / logo.height;
+            const logoWidth = logoMaxWidthPx;
+            const logoHeight = logoMaxWidthPx / logoAspectRatio;
+
+            const labelX = leftPaddingPx + mmToPx(2.5);
+            const logoX = labelX;
+            const logoY = mmToPx(1.8); // DINAIKKAN
+
+            ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+
+            const titleFontSize = mmToPx(1.73);
+            const subtitleFontSize = mmToPx(1.6);
+
+            const textX = logoX + logoWidth + mmToPx(1);
+            const textY = logoY + logoHeight / 2 - mmToPx(0.3);
+
+            ctx.font = `bold ${titleFontSize}px Arial`;
+            ctx.fillText('PT. SAGATRADE MURNI', textX, textY);
+            ctx.font = `bold ${subtitleFontSize}px Arial`;
+            ctx.fillText(
+              'C  A  L  I  B  R  A  T  I  O  N',
+              textX,
+              textY + subtitleFontSize + mmToPx(0.5),
+            );
+
+            // ➤ Draw CAL / DUE / BY
+            const fontSize = mmToPx(1.9);
+            ctx.font = `bold ${fontSize}px Courier`;
+            ctx.fillStyle = '#000';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 0.6;
+            ctx.textAlign = 'left';
+
+            const colonX = leftPaddingPx + mmToPx(7);
+            const valueX = leftPaddingPx + mmToPx(8);
+            const lineHeight = fontSize + 4;
+
+            // DINAIKKAN
+            const baseY = canvasHeight - barcodeHeightPx - mmToPx(6.2);
+
+            const drawText = (label: string, value: string, y: number) => {
+              ctx.strokeText(label, labelX, y);
+              ctx.fillText(label, labelX, y);
+              ctx.strokeText(':', colonX, y);
+              ctx.fillText(':', colonX, y);
+              ctx.strokeText(value, valueX, y);
+              ctx.fillText(value, valueX, y);
+            };
+
+            drawText('CAL', calDate, baseY);
+            drawText('DUE', dueDate, baseY + lineHeight);
+            drawText('BY', by, baseY + lineHeight * 2);
 
             const dataUrl = canvas.toDataURL('image/png', 1.0);
-
-            doc.addImage(dataUrl, 'PNG', 0, 0, canvasWidth / 2.5, canvasHeight / 2.5);
+            doc.addImage(dataUrl, 'PNG', 0, 0, labelWidthMm, labelHeightMm);
 
             if (idx < filteredIDs.length - 1) {
               doc.addPage();
@@ -274,15 +334,18 @@ export default function MasterKalibrasi() {
             if (idx === filteredIDs.length - 1) {
               const pdfBlob = doc.output('blob');
               const url = URL.createObjectURL(pdfBlob);
-
               window.open(url, '_blank');
             }
           };
 
-          img.onerror = () => {};
+          logo.onerror = () => {
+            console.error('Gagal memuat logo');
+          };
         };
 
-        logo.onerror = () => {};
+        img.onerror = () => {
+          console.error('Gagal memuat barcode image');
+        };
       }, 100);
     });
   };
@@ -291,94 +354,136 @@ export default function MasterKalibrasi() {
     if (selectedRows.length === 0) return;
 
     const filteredIDs = selectedRows.filter((row) => typeof row === 'number');
-
     if (filteredIDs.length === 0) return;
+
+    const DPI = 400;
+    const mmToPx = (mm: number) => (mm * DPI) / 25.4;
+
+    const labelWidthMm = 33; // 3.3 cm
+    const labelHeightMm = 9.6; // 0.96 cm
+
+    const barcodeWidthMm = 26.79;
+    const barcodeHeightMm = 3.3;
+
+    const leftPaddingMm = 5;
+    const leftPaddingPx = mmToPx(leftPaddingMm);
+
+    const canvasWidth = mmToPx(labelWidthMm);
+    const canvasHeight = mmToPx(labelHeightMm);
+
+    const barcodeWidthPx = mmToPx(barcodeWidthMm);
+    const barcodeHeightPx = mmToPx(barcodeHeightMm);
 
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: [65, 103],
+      format: [labelWidthMm, labelHeightMm],
       compress: false,
     });
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-
     if (!ctx) return;
+
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 
     filteredIDs.forEach((id, idx) => {
       const rowData = filteredRows.find((row) => row.id === id);
-      if (!rowData) return;
+      if (!rowData || !rowData.no_jft) return;
 
-      const { no_jft, calibration_date, next_calibration } = rowData;
-      if (!no_jft || !calibration_date || !next_calibration) return;
+      const no_jft = rowData.no_jft;
+      const formatDate = (dateInput: string | Date | null | undefined) => {
+        if (!dateInput) return '-';
+        const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = date.toLocaleString('id-ID', { month: 'short' }).toUpperCase();
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
+      };
 
-      const formattedCalibrationDate = new Date(calibration_date).toLocaleDateString();
-      const formattedNextCalibration = new Date(next_calibration).toLocaleDateString();
+      const calDate = formatDate(rowData.calibration_date);
+      const dueDate = formatDate(rowData.next_calibration);
+      const by = 'RUDI HASTOMO';
 
       const svgContainer = document.createElement('div');
       const root = createRoot(svgContainer);
-      root.render(<Barcode value={no_jft} format="CODE128" displayValue={false} />);
+      root.render(
+        <Barcode
+          value={no_jft}
+          format="CODE39"
+          displayValue={false}
+          height={barcodeHeightPx}
+          width={1}
+          margin={0}
+          background="#ffffff"
+        />,
+      );
 
       setTimeout(() => {
         const svgElement = svgContainer.querySelector('svg');
         if (!svgElement) return;
 
-        const svgRect = svgElement.getBoundingClientRect();
-        const barcodeWidth = svgRect.width || 180;
-        const barcodeHeight = svgRect.height || 60;
-
-        const aspectRatio = 9 / 16;
-        let canvasWidth = barcodeWidth + 80;
-        let canvasHeight = canvasWidth / aspectRatio;
-
-        if (canvasHeight < barcodeHeight + 120) {
-          canvasHeight = barcodeHeight + 120;
-          canvasWidth = canvasHeight * aspectRatio;
-        }
-
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight - 30;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        ctx.font = 'bold 18px Arial';
-        const labelX = 40;
-        const colonX = 85;
-        const valueX = 100;
-        const baseY = 30;
-        const lineSpacing = 25;
-
-        ctx.fillText('CAL', labelX, baseY);
-        ctx.fillText(':', colonX, baseY);
-        ctx.fillText(formattedCalibrationDate, valueX, baseY);
-
-        ctx.fillText('DUE', labelX, baseY + lineSpacing);
-        ctx.fillText(':', colonX, baseY + lineSpacing);
-        ctx.fillText(formattedNextCalibration, valueX, baseY + lineSpacing);
-
-        ctx.fillText('BY', labelX, baseY + lineSpacing * 2);
-        ctx.fillText(':', colonX, baseY + lineSpacing * 2);
-        ctx.fillText('RUDI HASTOMO', valueX, baseY + lineSpacing * 2);
-
-        ctx.save();
-        ctx.translate(30, canvasHeight / 2 - 130);
-        ctx.rotate(-Math.PI / 2);
-        ctx.font = 'bold 28px Arial';
-        ctx.fillText(`${no_jft}`, 0, 0);
-        ctx.restore();
-
         const svgData = new XMLSerializer().serializeToString(svgElement);
+        const base64 = btoa(unescape(encodeURIComponent(svgData)));
         const img = new Image();
-        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        img.src = `data:image/svg+xml;base64,${base64}`;
 
         img.onload = () => {
-          const barcodeX = (canvasWidth - barcodeWidth) / 2;
-          const barcodeY = baseY + lineSpacing * 2.5;
-          ctx.drawImage(img, barcodeX, barcodeY, barcodeWidth + 27, barcodeHeight - 20);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // ➤ Vertical no_jft
+          ctx.save();
+          const verticalTextX = mmToPx(4);
+          const verticalTextY = canvasHeight / 2;
+          ctx.translate(verticalTextX, verticalTextY);
+          ctx.rotate(-Math.PI / 2);
+          ctx.font = `bold ${mmToPx(1.8)}px Courier`;
+          ctx.fillStyle = '#000';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 0.8;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.strokeText(no_jft, 0, 0);
+          ctx.fillText(no_jft, 0, 0);
+          ctx.restore();
+
+          // ➤ Barcode
+          const contentWidth = canvasWidth - leftPaddingPx;
+          const barcodeX = leftPaddingPx + (contentWidth - barcodeWidthPx) / 2;
+          const barcodeY = canvas.height - barcodeHeightPx;
+          ctx.drawImage(img, barcodeX, barcodeY, barcodeWidthPx, barcodeHeightPx);
+
+          // ➤ Labels
+          const fontSizePx = mmToPx(1.8);
+          ctx.font = `bold ${fontSizePx}px Courier`;
+          ctx.fillStyle = '#000';
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 0.6;
+          ctx.textAlign = 'left';
+
+          const labelX = leftPaddingPx + mmToPx(2.5);
+          const colonX = leftPaddingPx + mmToPx(7);
+          const valueX = leftPaddingPx + mmToPx(8);
+
+          const lineHeight = fontSizePx + 2;
+          const baseY = barcodeY - lineHeight * 3 + mmToPx(1.2);
+
+          const drawText = (label: string, value: string, y: number) => {
+            ctx.strokeText(label, labelX, y);
+            ctx.fillText(label, labelX, y);
+            ctx.strokeText(':', colonX, y);
+            ctx.fillText(':', colonX, y);
+            ctx.strokeText(value, valueX, y);
+            ctx.fillText(value, valueX, y);
+          };
+
+          drawText('CAL', calDate, baseY);
+          drawText('DUE', dueDate, baseY + lineHeight);
+          drawText('BY', by, baseY + lineHeight * 2);
 
           const dataUrl = canvas.toDataURL('image/png', 1.0);
-
-          doc.addImage(dataUrl, 'PNG', 0, 0, canvasWidth / 2.5, canvasHeight / 2.5);
+          doc.addImage(dataUrl, 'PNG', 0, 0, labelWidthMm, labelHeightMm);
 
           if (idx < filteredIDs.length - 1) {
             doc.addPage();
@@ -387,12 +492,13 @@ export default function MasterKalibrasi() {
           if (idx === filteredIDs.length - 1) {
             const pdfBlob = doc.output('blob');
             const url = URL.createObjectURL(pdfBlob);
-
             window.open(url, '_blank');
           }
         };
 
-        img.onerror = () => {};
+        img.onerror = () => {
+          console.error('Gagal memuat barcode image');
+        };
       }, 100);
     });
   };
@@ -574,7 +680,7 @@ export default function MasterKalibrasi() {
                   <DialogActions>
                     <Button
                       onClick={() => {
-                        const selectedId = selectedRows?.[0];
+                        const selectedId = selectedRows?.[0]?.id;
                         if (!selectedId) {
                           console.error('Tidak ada data yang dipilih!');
                           return;
@@ -760,26 +866,52 @@ export default function MasterKalibrasi() {
                         }}
                       />
                     </TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.no_jft}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.size}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.description}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.serial_number}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.store_by}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.frequency}</TableCell>
-                    <TableCell className="overflow-hidden truncate">
+                    <TableCell title={val.no_jft} className="overflow-hidden truncate">
+                      {val.no_jft}
+                    </TableCell>
+                    <TableCell title={val.size} className="overflow-hidden truncate">
+                      {val.size}
+                    </TableCell>
+                    <TableCell title={val.description} className="overflow-hidden truncate">
+                      {val.description}
+                    </TableCell>
+                    <TableCell title={val.serial_number} className="overflow-hidden truncate">
+                      {val.serial_number}
+                    </TableCell>
+                    <TableCell title={val.store_by} className="overflow-hidden truncate">
+                      {val.store_by}
+                    </TableCell>
+                    <TableCell title={val.frequency} className="overflow-hidden truncate">
+                      {val.frequency}
+                    </TableCell>
+                    <TableCell title={val.calibration_source} className="overflow-hidden truncate">
                       {val.calibration_source}
                     </TableCell>
-                    <TableCell className="overflow-hidden truncate">
+                    <TableCell
+                      title={dayjs(val.calibration_date).format('DD/MM/YYYY')}
+                      className="overflow-hidden truncate"
+                    >
                       {dayjs(val.calibration_date).format('DD/MM/YYYY')}
                     </TableCell>
-                    <TableCell className="overflow-hidden truncate">
+                    <TableCell
+                      title={dayjs(val.next_calibration).format('DD/MM/YYYY')}
+                      className="overflow-hidden truncate"
+                    >
                       {dayjs(val.next_calibration).format('DD/MM/YYYY')}
                     </TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.ref_criteria}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.status}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.degree_usage}</TableCell>
-                    <TableCell className="overflow-hidden truncate">{val.keterangan}</TableCell>
-                    <TableCell>
+                    <TableCell title={val.ref_criteria} className="overflow-hidden truncate">
+                      {val.ref_criteria}
+                    </TableCell>
+                    <TableCell title={val.status} className="overflow-hidden truncate">
+                      {val.status}
+                    </TableCell>
+                    <TableCell title={val.degree_usage} className="overflow-hidden truncate">
+                      {val.degree_usage}
+                    </TableCell>
+                    <TableCell title={val.keterangan} className="overflow-hidden truncate">
+                      {val.keterangan}
+                    </TableCell>
+                    <TableCell title={val.lampiran}>
                       <a
                         href={val.lampiran}
                         target="_blank"
@@ -888,6 +1020,7 @@ const DialogPerpanjang = ({
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const calibrationDate = form.watch('calibration_date');
   const userData = useUserStore((state) => state.userData);
+  const [isSaving, setIsSaving] = useState(false);
   const frequency = form.watch('frequency');
 
   useEffect(() => {
@@ -1002,6 +1135,8 @@ const DialogPerpanjang = ({
       masterData.refetch();
     } catch (error) {
       console.error('Error processing request:', error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1380,8 +1515,13 @@ const DialogPerpanjang = ({
           <DialogActions>
             <div className="flex w-full justify-end px-4 pb-4">
               <div className="flex gap-2">
-                <Button type="submit" color="success">
-                  Save
+                <Button
+                  type="submit"
+                  color="success"
+                  onClick={() => setIsSaving(true)}
+                  loading={mutasi.isPending}
+                >
+                  {mutasi.isPending ? 'Saving...' : 'Save'}
                 </Button>
                 <Button onClick={handleCloseModal} color="danger">
                   Cancel
@@ -1883,9 +2023,6 @@ const DialogEdit = ({
         date.setFullYear(date.getFullYear() + freq);
       }
 
-      form.setValue('calibration_date', new Date().toISOString().split('T')[0], {
-        shouldValidate: true,
-      });
       form.setValue('next_calibration', date.toISOString().split('T')[0], { shouldValidate: true });
 
       form.setValue('frequency', values.frequency, { shouldValidate: true });
@@ -1948,9 +2085,6 @@ const DialogEdit = ({
         users: userData?.username,
         keterangan: '-',
       };
-
-      console.log(updatedData);
-
       await editDataMaster(updatedData);
 
       setOpenSnackbar(true);

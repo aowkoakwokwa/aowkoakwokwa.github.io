@@ -3,7 +3,6 @@ import { randomUUID } from 'crypto';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 import path from 'path';
 
-// Gantilah dengan token GitHub-mu sendiri
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
 const GITHUB_REPO = process.env.GITHUB_REPO!;
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';

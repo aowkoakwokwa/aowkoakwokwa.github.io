@@ -198,7 +198,7 @@ export default function ViewDetailInstrument({
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle>Tool Returning Form</DialogTitle>
+        <DialogTitle>Detail Instrument</DialogTitle>
         <DialogContent sx={{ overflow: 'hidden' }}>
           <div className="grid grid-cols-2 gap4 overflow-x-hidden">
             <div>

@@ -99,6 +99,16 @@ const deleteInstrumentData = async (id) => {
   }
 };
 
+const deleteManualCardek = async (id) => {
+  const deleted = await prisma.cardek_file.delete({
+    where: {
+      id_cardek_file: id,
+    },
+  });
+
+  return deleted;
+};
+
 export {
   deleteMaster,
   deleteAccountData,
@@ -106,4 +116,5 @@ export {
   deleteNcr,
   deleteNonMaster,
   deleteInstrumentData,
+  deleteManualCardek,
 };

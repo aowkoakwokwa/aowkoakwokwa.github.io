@@ -9,6 +9,21 @@ interface Instrument {
   serial_number: string | null;
 }
 
+type SelectedRow = {
+  id: number;
+  no_jft: string;
+  frequency: string;
+  calibration_source: string;
+  ref_criteria: string;
+  description: string;
+};
+
+type SelectionState = {
+  selectedRows: SelectedRow[];
+  setSelectedRows: (rows: SelectedRow[]) => void;
+  clearSelectedRows: () => void;
+};
+
 type SelectedItem = {
   usage_no: string | null;
   status: string | null;
@@ -100,6 +115,12 @@ interface UserState {
   setUserData: (user: User) => void;
   clearUserData: () => void;
 }
+
+const useSelectionStore = create<SelectionState>((set) => ({
+  selectedRows: [],
+  setSelectedRows: (rows) => set({ selectedRows: rows }),
+  clearSelectedRows: () => set({ selectedRows: [] }),
+}));
 
 const useUserStore = create<UserState>((set) => ({
   userData: null,
@@ -268,4 +289,5 @@ export {
   useCheckedInstrumentStore,
   useUserStore,
   usePageStore,
+  useSelectionStore,
 };
